@@ -1,9 +1,15 @@
 <resources>
-    <style name="Theme.Wellness" parent="android:style/Theme.Material.Light.NoActionBar">
+    <style name="Base.Theme.Wellness" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:colorAccent">#266859</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/wellness_background</item>
+        <item name="android:navigationBarColor">@color/wellness_background</item>
+        <item name="android:colorAccent">@color/wellness_selected</item>
+        <item name="android:colorBackground">@color/wellness_background</item>
+        <item name="android:textColorPrimary">@color/wellness_text</item>
+        <item name="android:textColorSecondary">@color/wellness_text_secondary</item>
         <item name="android:windowActionModeOverlay">true</item>
-        <item name="android:windowBackground">#F6F7F2</item>
+        <item name="android:windowBackground">@color/wellness_background</item>
     </style>
+    <style name="Theme.Wellness" parent="Base.Theme.Wellness" />
 </resources>

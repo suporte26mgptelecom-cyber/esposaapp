@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.Wellness" parent="Base.Theme.Wellness">
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
+</resources>

@@ -8,7 +8,6 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,6 +31,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import br.com.wellness.domain.*
+import br.com.wellness.ui.theme.wellnessOutlinedButtonColors
+import br.com.wellness.ui.theme.wellnessButtonColors
+import br.com.wellness.ui.theme.wellnessTextButtonColors
+import br.com.wellness.ui.theme.wellnessTextFieldColors
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -56,26 +59,38 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Column { Text("Wellness", fontWeight = FontWeight.Bold)
-                Text(if (vm.pending > 0) "Salvando…" else "Seu treino, no seu ritmo", style = MaterialTheme.typography.labelMedium) } },
-                navigationIcon = { if (selected != null || snapshotId != null) TextButton(onClick = { selected = null; snapshotId = null }) { Text("Voltar") } })
+            TopAppBar(colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.background,
+                titleContentColor = MaterialTheme.colorScheme.onBackground,
+                navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                actionIconContentColor = MaterialTheme.colorScheme.onBackground
+            ), title = { Column { Text("Wellness", fontWeight = FontWeight.Bold)
+                Text(if (vm.pending > 0) "Salvando…" else "Seu treino, no seu ritmo", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium) } },
+                navigationIcon = { if (selected != null || snapshotId != null) TextButton(colors = wellnessTextButtonColors(), onClick = { selected = null; snapshotId = null }) { Text("Voltar") } })
         },
-        bottomBar = { if (selected == null && snapshotId == null) NavigationBar {
+        bottomBar = { if (selected == null && snapshotId == null) NavigationBar(containerColor = MaterialTheme.colorScheme.background, tonalElevation = 0.dp) {
             listOf("inicio" to "Início", "historico" to "Histórico", "ajustes" to "Ajustes").forEach { (id, title) ->
-                NavigationBarItem(selected = page == id, onClick = { page = id }, icon = { Text(when(id) { "inicio" -> "◉"; "historico" -> "◷"; else -> "⚙" }) }, label = { Text(title) })
+                NavigationBarItem(colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.surface,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ), selected = page == id, onClick = { page = id }, icon = { Text(when(id) { "inicio" -> "◉"; "historico" -> "◷"; else -> "⚙" }) }, label = { Text(if (page == id) "$title ✓" else title) })
             }
         } }
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             vm.message?.let { msg -> Surface(color = MaterialTheme.colorScheme.errorContainer) {
                 Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(msg, Modifier.weight(1f)); TextButton(onClick = vm::dismissMessage) { Text("Fechar") }
+                    Text(msg, Modifier.weight(1f)); TextButton(colors = wellnessTextButtonColors(), onClick = vm::dismissMessage) { Text("Fechar") }
                 }
             } }
             if (state == null) {
                 Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    if (vm.fatal == null) CircularProgressIndicator() else {
-                        Text(vm.fatal!!); Button(onClick = { importer.launch(arrayOf("application/json", "text/*", "application/octet-stream")) }) { Text("Importar backup") }
+                    if (vm.fatal == null) CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.outline) else {
+                        Text(vm.fatal!!); Button(colors = wellnessButtonColors(), onClick = { importer.launch(arrayOf("application/json", "text/*", "application/octet-stream")) }) { Text(if (vm.pending > 0) "Salvando…" else "Importar backup") }
                     }
                 }
             } else {
@@ -98,17 +113,17 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
         val done = session.exercises.sumOf { ex -> ex.sets.count { vm.engine.record(state, session, ex, it).done } }
         AlertDialog(onDismissRequest = { completeDialog = false }, title = { Text("Concluir ${session.id}?") },
             text = { Text("$done de $all séries marcadas. Uma cópia das cargas, repetições e séries feitas será guardada no histórico, incluindo campos vazios. Alterações futuras não modificarão essa cópia.") },
-            confirmButton = { TextButton(enabled = vm.pending == 0, onClick = { vm.edit { vm.engine.complete(it, session) }; completeDialog = false; selected = null; page = "historico" }) { Text("Concluir e guardar") } },
-            dismissButton = { TextButton(onClick = { completeDialog = false }) { Text("Continuar treino") } })
+            confirmButton = { TextButton(colors = wellnessTextButtonColors(), enabled = vm.pending == 0, onClick = { vm.edit { vm.engine.complete(it, session) }; completeDialog = false; selected = null; page = "historico" }) { Text(if (vm.pending > 0) "Salvando…" else "Concluir e guardar") } },
+            dismissButton = { TextButton(colors = wellnessTextButtonColors(), onClick = { completeDialog = false }) { Text("Continuar treino") } })
     }
     if (restartDialog && session != null) AlertDialog(onDismissRequest = { restartDialog = false },
         title = { Text("Registrar novamente?") }, text = { Text("As marcações e cargas específicas desta sessão serão limpas. Os valores compartilhados e o histórico serão preservados.") },
-        confirmButton = { TextButton(onClick = { vm.edit { vm.engine.restart(it, session) }; restartDialog = false }) { Text("Novo registro") } },
-        dismissButton = { TextButton(onClick = { restartDialog = false }) { Text("Cancelar") } })
+        confirmButton = { TextButton(colors = wellnessTextButtonColors(), onClick = { vm.edit { vm.engine.restart(it, session) }; restartDialog = false }) { Text("Novo registro") } },
+        dismissButton = { TextButton(colors = wellnessTextButtonColors(), onClick = { restartDialog = false }) { Text("Cancelar") } })
     if (vm.pendingBackup != null) AlertDialog(onDismissRequest = vm::cancelImport, title = { Text("Restaurar backup?") },
         text = { Text("O arquivo é válido e pertence a esta planilha. Ele substituirá TODOS os registros atuais, incluindo o histórico e os perfis. Exporte os dados atuais antes, se quiser guardá-los.") },
-        confirmButton = { TextButton(onClick = vm::confirmImport) { Text("Substituir e restaurar") } },
-        dismissButton = { TextButton(onClick = vm::cancelImport) { Text("Cancelar") } })
+        confirmButton = { TextButton(colors = wellnessTextButtonColors(), onClick = vm::confirmImport) { Text("Substituir e restaurar") } },
+        dismissButton = { TextButton(colors = wellnessTextButtonColors(), onClick = vm::cancelImport) { Text("Cancelar") } })
 }
 
 @Composable private fun HomeScreen(vm: WellnessViewModel, state: AppState, open: (String) -> Unit) {
@@ -118,18 +133,18 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
         item { Text("Vamos cuidar de você.", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
         item { Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
             Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("SEU PROGRESSO", style = MaterialTheme.typography.labelLarge)
+                Text("SEU PROGRESSO", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
                 Text("${completed.size} de 24 sessões", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                LinearProgressIndicator(progress = { completed.size / 24f }, modifier = Modifier.fillMaxWidth())
-                Text("8 semanas · segunda, quarta e sexta")
+                LinearProgressIndicator(color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.outline, progress = { completed.size / 24f }, modifier = Modifier.fillMaxWidth())
+                Text("8 semanas · segunda, quarta e sexta", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } }
         item { if (next != null) Card {
             Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("PRÓXIMO TREINO", style = MaterialTheme.typography.labelLarge)
+                Text("PRÓXIMO TREINO", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
                 Text(next.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text("Semana ${next.week} · ${next.code} · ${next.day}")
-                Button(onClick = { open(next.id) }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text("Começar treino") }
+                Text("Semana ${next.week} · ${next.code} · ${next.day}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Button(colors = wellnessButtonColors(), onClick = { open(next.id) }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text("Começar treino") }
             }
         } else Text("24 sessões concluídas! Seu histórico está guardado.", style = MaterialTheme.typography.titleLarge) }
         for (week in 1..8) {
@@ -137,8 +152,8 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
             items(vm.plan.sessions.filter { it.week == week }, key = { it.id }) { s ->
                 OutlinedCard(onClick = { open(s.id) }) {
                     Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) { Text("${s.code} · ${s.day}", style = MaterialTheme.typography.labelLarge); Text(s.title, style = MaterialTheme.typography.titleMedium) }
-                        Text(if (s.id in completed) "Concluído ✓" else "Abrir →", style = MaterialTheme.typography.labelMedium)
+                        Column(Modifier.weight(1f)) { Text("${s.code} · ${s.day}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge); Text(s.title, style = MaterialTheme.typography.titleMedium) }
+                        Text(if (s.id in completed) "Concluído ✓" else "Abrir →", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }
@@ -152,20 +167,20 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     LazyColumn(modifier = Modifier.testTag("workout-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("SEMANA ${session.week} · ${session.code} · ${session.day.uppercase()}", style = MaterialTheme.typography.labelLarge)
+                Text("SEMANA ${session.week} · ${session.code} · ${session.day.uppercase()}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
                 Text(session.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("Fase ${session.phase} · $done / $total séries feitas")
-                LinearProgressIndicator(progress = { done.toFloat() / total }, modifier = Modifier.fillMaxWidth())
-                Text("Carga de trabalho e reps são compartilhadas com o mesmo exercício e perfil em todas as semanas. As marcas de feita pertencem a esta sessão.", style = MaterialTheme.typography.bodySmall)
+                Text("Fase ${session.phase} · $done / $total séries feitas", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                LinearProgressIndicator(color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.outline, progress = { done.toFloat() / total }, modifier = Modifier.fillMaxWidth())
+                Text("Carga de trabalho e reps são compartilhadas com o mesmo exercício e perfil em todas as semanas. As marcas de feita pertencem a esta sessão.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 if (session.id in vm.engine.completedIds(state)) {
                     Text("Já existe uma conclusão no histórico. Esta tela mostra os valores compartilhados atuais.")
-                    OutlinedButton(onClick = onRestart) { Text("Registrar novamente") }
+                    OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = onRestart) { Text("Registrar novamente") }
                 }
             }
         }
         items(session.exercises, key = { it.id }) { ex -> ExerciseCard(session, ex, state, vm) }
-        item { Button(onClick = onComplete, enabled = vm.pending == 0, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text("Concluir sessão") } }
-        item { Text("Salvamento automático no aparelho. Os vídeos abrem em outro aplicativo e precisam de internet.", style = MaterialTheme.typography.bodySmall) }
+        item { Button(colors = wellnessButtonColors(), onClick = onComplete, enabled = vm.pending == 0, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text(if (vm.pending > 0) "Salvando…" else "Concluir sessão") } }
+        item { Text("Salvamento automático no aparelho. Os vídeos abrem em outro aplicativo e precisam de internet.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
     }
 }
 
@@ -177,17 +192,17 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     Card {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(ex.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text("${v.profile.equipment} · ${v.profile.recording}${v.profile.variant.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()}", style = MaterialTheme.typography.bodyMedium)
+            Text("${v.profile.equipment} · ${v.profile.recording}${v.profile.variant.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { configuring = true }) { Text("Aparelho e carga") }
-                TextButton(onClick = {
+                OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { configuring = true }) { Text("Aparelho e carga") }
+                TextButton(colors = wellnessTextButtonColors(), onClick = {
                     try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(ex.video))) }
                     catch (_: Exception) { android.widget.Toast.makeText(context, "Nenhum aplicativo disponível para abrir o vídeo.", android.widget.Toast.LENGTH_LONG).show() }
                 }) { Text("Ver vídeo ↗") }
             }
             NumericField(v.load, "Carga de trabalho (kg)", Modifier.fillMaxWidth(), "WS-${session.id}-${v.profile.key}") { n -> vm.edit { vm.engine.load(it, ex, n) } }
-            Text("${if (v.increment == null || Loads.parse(v.increment)?.signum() == 0) "Cálculo exato" else "Arredonda para baixo a cada ${v.increment.shown()} kg"}. ${v.profile.recording}. Sem divisão por lado ou desconto da barra.", style = MaterialTheme.typography.bodySmall)
-            ex.notes.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+            Text("${if (v.increment == null || Loads.parse(v.increment)?.signum() == 0) "Cálculo exato" else "Arredonda para baixo a cada ${v.increment.shown()} kg"}. ${v.profile.recording}. Sem divisão por lado ou desconto da barra.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            ex.notes.forEach { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
             ex.sets.forEach { set ->
                 val record = vm.engine.record(state, session, ex, set)
                 val suggested = Loads.calculate(v.load, set.factor, v.increment)
@@ -196,7 +211,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(set.label, fontWeight = FontWeight.SemiBold)
-                            Text("Meta: ${set.range} reps · ${Loads.canonical(java.math.BigDecimal(set.factor).multiply(java.math.BigDecimal(100)))}% WS", style = MaterialTheme.typography.bodySmall)
+                            Text("Meta: ${set.range} reps · ${Loads.canonical(java.math.BigDecimal(set.factor).multiply(java.math.BigDecimal(100)))}% WS", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                         }
                         Checkbox(checked = record.done, onCheckedChange = { checked -> vm.edit { vm.engine.mark(it, session, ex, set, checked) } },
                             modifier = Modifier.semantics { contentDescription = "Feita ${ex.name} ${set.label}" })
@@ -208,8 +223,8 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                     }
                 }
             }
-            Text("Kg usados vazio: utiliza a carga calculada. Se diferente, informe o que usou só nesta série/sessão. Reps vazias não significam zero.", style = MaterialTheme.typography.bodySmall)
-            OutlinedButton(onClick = {
+            Text("Kg usados vazio: utiliza a carga calculada. Se diferente, informe o que usou só nesta série/sessão. Reps vazias não significam zero.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = {
                 if (v.rest == null) restDialog = true
                 else vm.edit { vm.engine.startTimer(it, v.rest, ex.name, System.currentTimeMillis()) }
             }, modifier = Modifier.fillMaxWidth()) { Text(if (v.rest == null) "Definir descanso" else "Descansar · ${v.rest.shown()} s") }
@@ -231,7 +246,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     // Do not overwrite an in-flight keystroke with an older queued disk write.
     LaunchedEffect(value) { if (!focused) text = value?.replace('.', ',').orEmpty() }
     val focus = LocalFocusManager.current
-    OutlinedTextField(value = text, onValueChange = { next ->
+    OutlinedTextField(colors = wellnessTextFieldColors(), value = text, onValueChange = { next ->
         if (next.isEmpty() || Loads.valid(next)) { text = next; changed(next.replace(',', '.').ifEmpty { null }) }
     }, label = { Text(label) }, placeholder = { Text(placeholder) }, singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
@@ -258,25 +273,28 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                 Text("Vale em todas as ocorrências com a mesma configuração original deste exercício. Perfis diferentes guardam cargas e reps separadas.")
                 Choice("Equipamento", equipment, vm.plan.equipmentOptions) { equipment = it }
                 Choice("Como registrar", recording, vm.plan.recordingOptions) { recording = it }
-                OutlinedTextField(variant, { if (it.length <= 80) variant = it }, label = { Text("Identificação / variação") },
+                OutlinedTextField(value = variant, onValueChange = { if (it.length <= 80) variant = it }, colors = wellnessTextFieldColors(), label = { Text("Identificação / variação") },
                     placeholder = { Text("Ex.: máquina azul, smith ou livre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                Text("Use nomes diferentes para aparelhos ou variações diferentes. Trocar perfil não copia os quilos do anterior. Escolher o perfil anterior recupera seus valores.", style = MaterialTheme.typography.bodySmall)
+                Text("Use nomes diferentes para aparelhos ou variações diferentes. Trocar perfil não copia os quilos do anterior. Escolher o perfil anterior recupera seus valores.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 NumericField(increment, "Incremento (kg)", identity = "increment-${profile.key}") { increment = it }
-                Text("Vazio ou zero: cálculo exato. Maior que zero: arredonda para baixo, por série.", style = MaterialTheme.typography.bodySmall)
+                Text("Vazio ou zero: cálculo exato. Maior que zero: arredonda para baixo, por série.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 NumericField(rest, "Descanso (segundos)", identity = "rest-${profile.key}") { rest = it }
-                Text("A planilha não especifica descanso; escolha o seu. Vazio permanece sem duração definida.", style = MaterialTheme.typography.bodySmall)
+                Text("A planilha não especifica descanso; escolha o seu. Vazio permanece sem duração definida.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
         },
-        confirmButton = { TextButton(onClick = { vm.edit { vm.engine.configure(it, ex, profile, increment, rest) }; close() }) { Text("Salvar perfil") } },
-        dismissButton = { TextButton(onClick = close) { Text("Cancelar") } })
+        confirmButton = { TextButton(colors = wellnessTextButtonColors(), onClick = { vm.edit { vm.engine.configure(it, ex, profile, increment, rest) }; close() }) { Text("Salvar perfil") } },
+        dismissButton = { TextButton(colors = wellnessTextButtonColors(), onClick = close) { Text("Cancelar") } })
 }
 
 @Composable private fun Choice(label: String, value: String, options: List<String>, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) { Text("$label: $value ▾") }
+        OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) { Text("$label: $value ▾") }
         DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { option -> DropdownMenuItem(text = { Text(option) }, onClick = { onSelect(option); expanded = false }) }
+            options.forEach { option -> DropdownMenuItem(text = { Text(
+                if (option == value) "$option ✓" else option,
+                color = if (option == value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            ) }, onClick = { onSelect(option); expanded = false }) }
         }
     }
 }
@@ -288,8 +306,8 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
             Text("A planilha não define uma duração. Informe o tempo em segundos.")
             NumericField(seconds, "Segundos") { seconds = it }
         }
-    }, confirmButton = { TextButton(enabled = seconds != null, onClick = { seconds?.let(onStart) }) { Text("Iniciar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } })
+    }, confirmButton = { TextButton(colors = wellnessTextButtonColors(), enabled = seconds != null, onClick = { seconds?.let(onStart) }) { Text(if (seconds == null) "Informe o tempo" else "Iniciar") } },
+        dismissButton = { TextButton(colors = wellnessTextButtonColors(), onClick = onDismiss) { Text("Cancelar") } })
 }
 
 @Composable private fun TimerBar(state: AppState, vm: WellnessViewModel) {
@@ -318,10 +336,10 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
             val seconds = (left + 999) / 1000
             Text(if (left == 0L) "Descanso concluído" else "Descanso · ${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}", fontWeight = FontWeight.Bold)
-            Text(timer.label, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+            Text(timer.label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, maxLines = 1)
             Row {
-                if (left > 0) TextButton(onClick = { vm.edit { if (it.timer.deadline != null) vm.engine.pauseTimer(it, System.currentTimeMillis()) else vm.engine.resumeTimer(it, System.currentTimeMillis()) } }) { Text(if (timer.deadline != null) "Pausar" else "Continuar") }
-                TextButton(onClick = { vm.edit { it.copy(timer = TimerState()) } }) { Text("Fechar") }
+                if (left > 0) TextButton(colors = wellnessTextButtonColors(), onClick = { vm.edit { if (it.timer.deadline != null) vm.engine.pauseTimer(it, System.currentTimeMillis()) else vm.engine.resumeTimer(it, System.currentTimeMillis()) } }) { Text(if (timer.deadline != null) "Pausar" else "Continuar") }
+                TextButton(colors = wellnessTextButtonColors(), onClick = { vm.edit { it.copy(timer = TimerState()) } }) { Text("Fechar") }
             }
         }
     }
@@ -336,8 +354,8 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
             OutlinedCard(onClick = { open(h.id) }) {
                 Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("${h.sessionId} · ${h.title}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(date(h.finishedAt))
-                    Text("${h.exercises.sumOf { e -> e.sets.count { it.done } }} séries marcadas · Ver registro →", style = MaterialTheme.typography.bodySmall)
+                    Text(date(h.finishedAt), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${h.exercises.sumOf { e -> e.sets.count { it.done } }} séries marcadas · Ver registro →", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
@@ -347,17 +365,17 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
 @Composable private fun SnapshotScreen(h: CompletedWorkout) {
     LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item {
-            Text("Registro concluído", style = MaterialTheme.typography.labelLarge)
+            Text("Registro concluído", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
             Text("${h.sessionId} · ${h.title}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("${date(h.finishedAt)} · fase ${h.phase}")
-            Text("Cópia preservada · somente leitura", style = MaterialTheme.typography.bodySmall)
+            Text("${date(h.finishedAt)} · fase ${h.phase}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Cópia preservada · somente leitura", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         }
         items(h.exercises, key = { it.id }) { ex ->
             Card {
                 Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(ex.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Text("${ex.profile.equipment} · ${ex.profile.recording} · ${ex.profile.variant}")
-                    Text("Carga de trabalho: ${ex.workLoad.shown()} kg · incremento: ${ex.increment.shown()} kg · descanso: ${ex.rest.shown()} s")
+                    Text("${ex.profile.equipment} · ${ex.profile.recording} · ${ex.profile.variant}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Carga de trabalho: ${ex.workLoad.shown()} kg · incremento: ${ex.increment.shown()} kg · descanso: ${ex.rest.shown()} s", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     ex.sets.forEach { set ->
                         HorizontalDivider()
                         Text("${if (set.done) "✓" else "○"} ${set.spec.label} · meta ${set.spec.range}", fontWeight = FontWeight.SemiBold)
@@ -373,13 +391,13 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item { Text("Seu cuidado, guardado", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
         item { Text("Tudo fica neste aparelho, sem conta. Exporte um backup antes de trocar de celular ou desinstalar o aplicativo.") }
-        item { Button(onClick = onExport, enabled = vm.pending == 0, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text("Exportar backup") } }
-        item { OutlinedButton(onClick = onImport, enabled = vm.pending == 0, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text("Importar backup") } }
-        item { Text("O backup inclui valores compartilhados, configurações, marcações, temporizador e ${state.history.size} conclusões. A importação valida o arquivo e pede confirmação antes de substituir os dados.", style = MaterialTheme.typography.bodySmall) }
+        item { Button(colors = wellnessButtonColors(), onClick = onExport, enabled = vm.pending == 0, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text(if (vm.pending > 0) "Salvando…" else "Exportar backup") } }
+        item { OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = onImport, enabled = vm.pending == 0, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text(if (vm.pending > 0) "Salvando…" else "Importar backup") } }
+        item { Text("O backup inclui valores compartilhados, configurações, marcações, temporizador e ${state.history.size} conclusões. A importação valida o arquivo e pede confirmação antes de substituir os dados.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
         item { Text("Sobre seu plano", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
         item { Text("ACADEMIAWELLNESS.xlsx · 25 abas · 24 sessões. As configurações e fórmulas vêm do arquivo. Para mudar aparelho, forma de registrar, incremento ou descanso, use ‘Aparelho e carga’ no exercício.") }
         item { Text("Os vídeos precisam de internet. O restante funciona offline. O descanso usa o horário de término, inclusive ao fechar a tela; o aviso sonoro é dado com o aplicativo aberto. Não há serviço de alarme em segundo plano.") }
-        items(vm.plan.notes) { Text(it, style = MaterialTheme.typography.bodyMedium) }
-        item { Text("Fonte SHA-256: ${vm.plan.sourceSha256}", style = MaterialTheme.typography.labelSmall) }
+        items(vm.plan.notes) { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium) }
+        item { Text("Fonte SHA-256: ${vm.plan.sourceSha256}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall) }
     }
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paleta única para Compose, janela do Android e ícone. -->
+    <color name="wellness_background">#000000</color>
+    <color name="wellness_surface">#151515</color>
+    <color name="wellness_input">#202020</color>
+    <color name="wellness_text">#FFFFFF</color>
+    <color name="wellness_text_secondary">#BDBDBD</color>
+    <color name="wellness_button">#C62828</color>
+    <color name="wellness_selected">#EF4444</color>
+    <color name="wellness_border">#333333</color>
+</resources>

@@ -2,6 +2,14 @@
 
 Aplicativo em português para registrar os treinos da **ACADEMIAWELLNESS.xlsx**, sem conta e sem internet. Feito em Kotlin e Jetpack Compose. Requer Android 8.0 ou mais recente.
 
+## Atualização 1.1 — tema preto, branco e vermelho
+
+Esta versão muda somente as cores e as indicações visuais de seleção/indisponibilidade. A organização das telas, os exercícios, cálculos, compartilhamento, histórico e formato dos registros continuam iguais. O tema é fixo, mesmo que o celular esteja no modo claro.
+
+Para atualizar, baixe o APK da pasta `instalar`, abra-o no celular e escolha **Atualizar**. **Instale por cima do aplicativo existente; não desinstale nem limpe os dados.** O `applicationId` continua `br.com.wellness`, o `versionCode` passou de 1 para 2 e a mesma chave de assinatura foi preservada.
+
+A paleta está centralizada em `app/src/main/res/values/colors.xml`. O mapeamento para os componentes fica em `app/src/main/java/br/com/wellness/ui/theme/WellnessTheme.kt`. As barras do Android usam a mesma paleta. O teclado numérico é o teclado do celular; não existe teclado próprio no aplicativo.
+
 ## Baixar e instalar sem programar
 
 [Baixar o APK Wellness-teste.apk](https://github.com/suporte26mgptelecom-cyber/esposaapp/raw/refs/heads/main/instalar/Wellness-teste.apk)
@@ -59,7 +67,7 @@ Os vídeos abrem no navegador ou YouTube e precisam de internet. O treino, os c�
 
 Transfira `app-debug.apk` para o celular, abra-o no gerenciador de arquivos e autorize a instalação por esse aplicativo quando o Android pedir. Instale apenas o arquivo que você gerou ou recebeu de uma fonte de confiança. Esse APK é de teste; não precisa de Play Store nem de conta.
 
-Para atualizar mantendo os dados, instale por cima com a **mesma assinatura**. APKs gerados em computadores diferentes podem ter assinaturas de teste diferentes. Faça backup antes de desinstalar para trocar a assinatura. Para publicar na Play Store, será necessário configurar uma chave de assinatura de produção separadamente.
+Para atualizar mantendo os dados, instale por cima com a **mesma assinatura**. APKs gerados em computadores diferentes podem ter assinaturas de teste diferentes. Se o Android avisar que a assinatura não coincide, **não desinstale nem limpe os dados**: será necessário gerar o APK com a chave anterior. A chave usada nesta nuvem está em `/workspace/.android/debug.keystore`, fora do Git; preserve-a para futuras atualizações. Para publicar na Play Store, será necessário planejar a assinatura de produção separadamente.
 
 ## Compilar pelo terminal
 

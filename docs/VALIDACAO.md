@@ -1,6 +1,20 @@
-# Validação da primeira versão
+# Validação do aplicativo
 
 Planilha oficial: `ACADEMIAWELLNESS.xlsx`, SHA-256 `59cd316986fdf8c8619ff1003961b192a65166a8bb3b9e20baed016e6725cb1a`.
+
+## Atualização 1.1 — somente tema e identificação da versão
+
+- Paleta fixa preto, branco e vermelho em `res/values/colors.xml`, aplicada pelo `WellnessTheme` a todas as telas. As barras nativas usam os mesmos recursos; o modo claro/escuro do celular não seleciona outra paleta.
+- A organização das telas e os callbacks de entrada/ação foram comparados com a versão anterior e preservados. Não houve alteração em `domain/`, `data/`, `WellnessViewModel`, planilha, plano JSON ou testes de cálculo/persistência.
+- Versão 1.1, `versionCode=2` (antes 1), `applicationId=br.com.wellness` inalterado, Android mínimo API 26 preservado.
+- A chave anterior estava disponível. `apksigner verify --print-certs` confirmou que os certificados dos APKs antigo e novo têm o mesmo SHA-256: `f45a0d175aed2396cba54737eee94ee8b96fda1190f9a8c5d95619687a7566d5`.
+- `:app:testDebugUnitTest`: 10 testes executados e aprovados, zero falhas/erros/ignorados; inclui os 4.158 casos das fórmulas e os testes de compartilhamento, histórico, backup e persistência.
+- `:app:assembleDebug`: APK 1.1 gerado; assinatura validada e identificação/versão conferidas com `aapt`. O plano dentro do APK continua idêntico ao da versão anterior.
+- `:app:lintDebug`: **No issues found**, zero erros e avisos. Os atributos de barras/contraste foram separados por versão do Android para manter suporte ao Android 8.0.
+- Contraste calculado a partir da paleta: branco/preto **21:1**; branco/superfície **18,26:1**; branco/campo **16,29:1**; cinza claro/superfície **9,72:1**; branco/botão vermelho **5,62:1**; vermelho selecionado/superfície **4,85:1**. Seleção e conclusão também têm ✓; indisponibilidade ao salvar informa “Salvando…”.
+- A atualização no celular e a aparência em execução não foram testadas nesta etapa. Não foi repetida a inicialização do emulador sem KVM que já apresentou as falhas documentadas abaixo. Não se afirma validação visual em aparelho.
+- Para atualizar preservando os registros, instale por cima e escolha **Atualizar**. Não desinstale nem limpe os dados. A mesma identidade/assinatura e o formato dos dados preservado permitem a atualização; os registros no aparelho do usuário não foram acessados.
+- APK 1.1 SHA-256: `62430e5201c9cd2c1855fe12cea7506ca231bc0e10960161338beb8056590685`.
 
 ## Ambiente utilizado
 

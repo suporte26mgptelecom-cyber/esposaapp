@@ -1,6 +1,14 @@
-# Instalar o Wellness
+# Instalar ou atualizar o Wellness 1.1
 
 Você não precisa programar nem instalar Android Studio para usar este APK.
+
+## Se já tem o Wellness instalado
+
+Abra este APK e escolha **Atualizar**. Instale por cima: **não desinstale nem limpe os dados**. Esta versão usa a mesma identificação e chave de assinatura da versão anterior; o número interno da versão aumentou para 2.
+
+A mudança é visual: tema preto, branco e vermelho. Treinos e registros continuam no mesmo lugar. Se o Android mostrar erro de assinatura, pare a instalação e informe o erro, sem apagar o aplicativo atual.
+
+## Primeira instalação
 
 1. No GitHub, abra `Wellness-teste.apk` e toque em **Download raw** (seta de download).
 2. No celular, abra **Downloads** e toque no APK.
