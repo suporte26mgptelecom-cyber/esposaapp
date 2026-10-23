@@ -1,0 +1,2 @@
+# Apenas para refazer a extração e os casos de teste. Não é necessário para compilar.
+openpyxl==3.1.5
