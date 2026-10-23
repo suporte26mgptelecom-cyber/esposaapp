@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.wellness.RestAlerts
 import br.com.wellness.data.*
 import br.com.wellness.domain.*
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,7 @@ import java.io.File
 
 class WellnessViewModel(application: Application) : AndroidViewModel(application) {
     val plan = Codec.plan(application.assets.open("wellness.json").bufferedReader().use { it.readText() })
+    val guides = Codec.json.decodeFromString<List<ExerciseGuide>>(application.assets.open("exercise-guides.json").bufferedReader().use { it.readText() }).associateBy { it.id }
     val engine = WorkoutEngine(plan)
     private val file = StateFile(File(application.filesDir, "wellness-v1.json"), plan)
     var state by mutableStateOf<AppState?>(null)
@@ -31,10 +33,12 @@ class WellnessViewModel(application: Application) : AndroidViewModel(application
         private set
     var pendingBackup by mutableStateOf<String?>(null)
         private set
+    var pendingRest by mutableStateOf<RestRequest?>(null)
+        private set
     private val queue = Channel<suspend () -> Unit>(Channel.UNLIMITED)
     init {
         viewModelScope.launch {
-            try { state = withContext(Dispatchers.IO) { file.read() } }
+            try { state = withContext(Dispatchers.IO) { file.read() }; syncAlert(requireNotNull(state)) }
             catch (e: Exception) { fatal = "Não foi possível ler os registros. O arquivo foi preservado. Importe um backup válido. ${e.message.orEmpty()}" }
             for (job in queue) {
                 try { job() }
@@ -48,6 +52,27 @@ class WellnessViewModel(application: Application) : AndroidViewModel(application
         val next = change(requireNotNull(state))
         withContext(Dispatchers.IO) { file.write(next) }
         state = next
+        syncAlert(next)
+    }
+    private fun syncAlert(next: AppState) {
+        runCatching { RestAlerts.sync(getApplication(), next.timer) }
+            .onFailure { message = "Contagem salva; não foi possível agendar o aviso. Confira as permissões de descanso nos Ajustes." }
+    }
+    fun requestRest(request: RestRequest) = enqueue {
+        val current = requireNotNull(state)
+        if (engine.timerActive(current, System.currentTimeMillis())) pendingRest = request
+        else persistRest(current, request, false)
+    }
+    private suspend fun persistRest(current: AppState, request: RestRequest, replace: Boolean) {
+        val next = engine.beginRest(current, request, System.currentTimeMillis(), replace)
+        withContext(Dispatchers.IO) { file.write(next) }
+        state = next; syncAlert(next)
+    }
+    fun cancelRest() { pendingRest = null }
+    fun replaceRest() {
+        val request = pendingRest ?: return
+        pendingRest = null
+        enqueue { persistRest(requireNotNull(state), request, true) }
     }
     fun dismissMessage() { message = null }
     fun export(uri: Uri) = enqueue {
@@ -78,7 +103,7 @@ class WellnessViewModel(application: Application) : AndroidViewModel(application
         pendingBackup = null
         enqueue {
             val restored = withContext(Dispatchers.IO) { file.import(text) }
-            state = restored; fatal = null; message = "Backup restaurado."
+            state = restored; syncAlert(restored); fatal = null; message = "Backup restaurado."
         }
     }
 }

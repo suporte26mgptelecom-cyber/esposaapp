@@ -1,0 +1,15 @@
+{
+  "versionName": "1.2",
+  "versionCode": 3,
+  "applicationId": "br.com.wellness",
+  "apkSha256": "ced7cf6576dc0dd6b36beadf3d520b716c109fc59263352ed9f36715f6c938f5",
+  "certificateSha256": "f45a0d175aed2396cba54737eee94ee8b96fda1190f9a8c5d95619687a7566d5",
+  "sourceSha256": "59cd316986fdf8c8619ff1003961b192a65166a8bb3b9e20baed016e6725cb1a",
+  "unitAndRobolectricTests": 21,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "lint": "No issues found.",
+  "physicalDeviceTested": false,
+  "ui": "Robolectric Android 14, navigation and visibility; no full-device visual verification"
+}

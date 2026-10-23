@@ -16,7 +16,7 @@ object Codec {
     fun decode(text: String, plan: Plan): AppState {
         require(text.toByteArray(Charsets.UTF_8).size <= MAX_BYTES) { "Backup maior que 16 MB." }
         val state = json.decodeFromString<AppState>(text)
-        require(state.format == 1) { "Versão de backup incompatível." }
+        require(state.format in 1..2) { "Versão de backup incompatível." }
         require(state.sourceSha256 == plan.sourceSha256) { "Backup de outra planilha." }
         val exercises = plan.sessions.flatMap { it.exercises }
         val originals = exercises.map { it.originalProfile.key }.toSet()
@@ -50,9 +50,11 @@ object Codec {
             require(h.title == session.title && h.exercises.map { it.id } == session.exercises.map { it.id })
             h.exercises.zip(session.exercises).forEach { (ex, source) ->
                 profile(ex.profile); require(ex.profile.exerciseId == ex.id && ex.name == source.name)
+                require(ex.betweenRestSeconds == null || ex.betweenRestSeconds >= 0)
                 number(ex.workLoad); number(ex.increment); number(ex.rest)
                 require(ex.sets.map { it.spec } == source.sets)
                 ex.sets.forEach { set ->
+                    require(set.restSeconds == null || set.restSeconds >= 0)
                     number(set.suggestedLoad); number(set.usedLoad); number(set.reps)
                     require(set.suggestedLoad == Loads.calculate(ex.workLoad, set.spec.factor, ex.increment))
                     if (!set.explicitLoad) require(set.usedLoad == set.suggestedLoad)
@@ -63,7 +65,16 @@ object Codec {
         require(state.timer.deadline == null || state.timer.deadline >= 0)
         require(state.timer.remainingMs == null || state.timer.remainingMs >= 0)
         require(state.timer.label.length <= 300)
-        return state
+        require(state.timer.exerciseName.length <= 200 && state.timer.seriesLabel.length <= 100 && state.timer.id.length <= 100)
+        state.restPreferences.forEach { (key, seconds) ->
+            val parts = key.split('|'); require(parts.size == 2)
+            val v = requireNotNull(state.shared[parts[0]]) { "Perfil de descanso inexistente." }
+            val specs = exercises.filter { it.id == v.profile.exerciseId }.flatMap { it.sets }.map { it.key }
+            require(parts[1] == "between" || parts[1] in specs)
+            require(seconds >= 0 && seconds <= (Long.MAX_VALUE - System.currentTimeMillis()) / 1000)
+        }
+        // Additive migration: all existing values, history and legacy actualLoad stay intact.
+        return state.copy(format = 2)
     }
 }
 

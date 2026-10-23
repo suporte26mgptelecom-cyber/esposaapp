@@ -2,9 +2,17 @@
 package br.com.wellness.ui
 
 import android.content.Intent
-import android.media.ToneGenerator
-import android.media.AudioManager
 import android.net.Uri
+import android.Manifest
+import android.os.Build
+import br.com.wellness.RestAlerts
+import br.com.wellness.VideoSearch
+import br.com.wellness.R
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,25 +67,25 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     }
     Scaffold(
         topBar = {
-            TopAppBar(colors = TopAppBarDefaults.topAppBarColors(
+            CenterAlignedTopAppBar(colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background,
                 scrolledContainerColor = MaterialTheme.colorScheme.background,
                 titleContentColor = MaterialTheme.colorScheme.onBackground,
                 navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
                 actionIconContentColor = MaterialTheme.colorScheme.onBackground
-            ), title = { Column { Text("Wellness", fontWeight = FontWeight.Bold)
-                Text(if (vm.pending > 0) "Salvando…" else "Seu treino, no seu ritmo", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium) } },
+            ), title = { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text("WELLNESS", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                Text("Seu treino com segurança", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium) } },
                 navigationIcon = { if (selected != null || snapshotId != null) TextButton(colors = wellnessTextButtonColors(), onClick = { selected = null; snapshotId = null }) { Text("Voltar") } })
         },
         bottomBar = { if (selected == null && snapshotId == null) NavigationBar(containerColor = MaterialTheme.colorScheme.background, tonalElevation = 0.dp) {
-            listOf("inicio" to "Início", "historico" to "Histórico", "ajustes" to "Ajustes").forEach { (id, title) ->
+            listOf("inicio" to "Início", "exercicios" to "Exercícios", "historico" to "Histórico", "ajustes" to "Ajustes").forEach { (id, title) ->
                 NavigationBarItem(colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.primary,
                     selectedTextColor = MaterialTheme.colorScheme.primary,
                     indicatorColor = MaterialTheme.colorScheme.surface,
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                ), selected = page == id, onClick = { page = id }, icon = { Text(when(id) { "inicio" -> "◉"; "historico" -> "◷"; else -> "⚙" }) }, label = { Text(if (page == id) "$title ✓" else title) })
+                ), selected = page == id, onClick = { page = id }, icon = { Text(when(id) { "inicio" -> "◉"; "historico" -> "◷"; "exercicios" -> "▤"; else -> "⚙" } + if (page == id) " ✓" else "") }, label = { Text(title, maxLines = 1) })
             }
         } }
     ) { padding ->
@@ -94,11 +102,13 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                     }
                 }
             } else {
-                TimerBar(state, vm)
+                if (vm.pending > 0) Text("Salvando…", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelSmall)
+                if (session != null) TimerBar(state, vm)
                 when {
                     snapshot != null -> SnapshotScreen(snapshot)
                     session != null -> WorkoutScreen(session, state, vm,
                         onComplete = { completeDialog = true }, onRestart = { restartDialog = true })
+                    page == "exercicios" -> ExercisesScreen(vm)
                     page == "historico" -> HistoryScreen(state) { snapshotId = it }
                     page == "ajustes" -> SettingsScreen(vm, state,
                         onExport = { export.launch("wellness-backup-${SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(Date())}.json") },
@@ -107,6 +117,12 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                 }
             }
         }
+    }
+    vm.pendingRest?.let { request ->
+        AlertDialog(onDismissRequest = vm::cancelRest, title = { Text("Substituir descanso atual?") },
+            text = { Text("Já existe um descanso em andamento ou pausado. Iniciar ${request.exerciseName} · ${request.seriesLabel} encerrará o atual.") },
+            confirmButton = { TextButton(colors = wellnessTextButtonColors(), onClick = vm::replaceRest) { Text("Substituir e iniciar") } },
+            dismissButton = { TextButton(colors = wellnessTextButtonColors(), onClick = vm::cancelRest) { Text("Manter atual") } })
     }
     if (completeDialog && session != null && state != null) {
         val all = session.exercises.sumOf { it.sets.size }
@@ -130,7 +146,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     val completed = vm.engine.completedIds(state)
     val next = vm.engine.next(state)
     LazyColumn(modifier = Modifier.testTag("home-list"), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { Text("Vamos cuidar de você.", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
+        item { Text("Bem-vinda, Nanda", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
         item { Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
             Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("SEU PROGRESSO", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
@@ -184,25 +200,65 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     }
 }
 
+@Composable private fun VideoButton(ex: Exercise) {
+    val context = LocalContext.current
+    Button(colors = wellnessButtonColors(), onClick = { VideoSearch.open(context, ex) },
+        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+        Icon(painterResource(R.drawable.ic_video), contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text("Buscar vídeo no TikTok", textAlign = TextAlign.Center)
+    }
+}
+
+@Composable private fun ExecutionTip(ex: Exercise, vm: WellnessViewModel, catalog: Boolean = false) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("Dica de execução", fontWeight = FontWeight.SemiBold)
+        val notes = if (catalog) vm.plan.sessions.flatMap { it.exercises }.filter { it.id == ex.id }
+            .flatMap(ExerciseLibrary::executionNotes).distinct() else ExerciseLibrary.executionNotes(ex)
+        notes.forEach { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        Text(vm.guides.getValue(ex.id).tip, style = MaterialTheme.typography.bodyMedium)
+        Text("Se sentir dor, interrompa o movimento e peça orientação.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable private fun ExercisesScreen(vm: WellnessViewModel) {
+    var query by rememberSaveable { mutableStateOf("") }
+    val exercises = remember(query) { ExerciseLibrary.search(vm.plan, query) }
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        Text("Exercícios", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 16.dp))
+        OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("Buscar por nome") }, singleLine = true,
+            colors = wellnessTextFieldColors(), modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp))
+        LazyColumn(modifier = Modifier.testTag("exercises-list"), contentPadding = PaddingValues(bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            item { Text("${exercises.size} exercícios · variações com nomes próprios preservadas", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
+            if (exercises.isEmpty()) item { Text("Nenhum exercício encontrado.") }
+            items(exercises, key = { it.id }) { ex -> Card {
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(ex.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    ExecutionTip(ex, vm, catalog = true)
+                    VideoButton(ex)
+                }
+            } }
+        }
+    }
+}
+
 @Composable private fun ExerciseCard(session: Session, ex: Exercise, state: AppState, vm: WellnessViewModel) {
     val v = vm.engine.values(state, ex)
     var configuring by remember { mutableStateOf(false) }
-    var restDialog by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    var calculation by rememberSaveable { mutableStateOf(false) }
     Card {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(ex.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text("${v.profile.equipment} · ${v.profile.recording}${v.profile.variant.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { configuring = true }) { Text("Aparelho e carga") }
-                TextButton(colors = wellnessTextButtonColors(), onClick = {
-                    try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(ex.video))) }
-                    catch (_: Exception) { android.widget.Toast.makeText(context, "Nenhum aplicativo disponível para abrir o vídeo.", android.widget.Toast.LENGTH_LONG).show() }
-                }) { Text("Ver vídeo ↗") }
-            }
+            OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { configuring = true }) { Text("Aparelho e carga") }
+            VideoButton(ex)
             NumericField(v.load, "Carga de trabalho (kg)", Modifier.fillMaxWidth(), "WS-${session.id}-${v.profile.key}") { n -> vm.edit { vm.engine.load(it, ex, n) } }
-            Text("${if (v.increment == null || Loads.parse(v.increment)?.signum() == 0) "Cálculo exato" else "Arredonda para baixo a cada ${v.increment.shown()} kg"}. ${v.profile.recording}. Sem divisão por lado ou desconto da barra.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-            ex.notes.forEach { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
+            ExecutionTip(ex, vm)
+            TextButton(colors = wellnessTextButtonColors(), onClick = { calculation = !calculation }) { Text("Sobre o cálculo ${if (calculation) "▴" else "▾"}") }
+            if (calculation) {
+                Text("${if (v.increment == null || Loads.parse(v.increment)?.signum() == 0) "Cálculo exato" else "Arredonda para baixo a cada ${v.increment.shown()} kg"}. ${v.profile.recording}. Sem divisão por lado ou desconto da barra.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                ExerciseLibrary.calculationNotes(ex).forEach { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
+            }
             ex.sets.forEach { set ->
                 val record = vm.engine.record(state, session, ex, set)
                 val suggested = Loads.calculate(v.load, set.factor, v.increment)
@@ -210,33 +266,48 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                     HorizontalDivider()
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text(set.label, fontWeight = FontWeight.SemiBold)
+                            Text(set.label + if (record.done) " · Feita ✓" else "", fontWeight = FontWeight.SemiBold)
                             Text("Meta: ${set.range} reps · ${Loads.canonical(java.math.BigDecimal(set.factor).multiply(java.math.BigDecimal(100)))}% WS", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                         }
                         Checkbox(checked = record.done, onCheckedChange = { checked -> vm.edit { vm.engine.mark(it, session, ex, set, checked) } },
                             modifier = Modifier.semantics { contentDescription = "Feita ${ex.name} ${set.label}" })
                     }
                     Text("Carga calculada: ${suggested.shown()} kg", style = MaterialTheme.typography.titleMedium)
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        NumericField(record.actualLoad, "Kg usados", Modifier.weight(1f), "kg-${session.id}-${v.profile.key}-${set.key}", placeholder = suggested.shown()) { n -> vm.edit { vm.engine.actualLoad(it, session, ex, set, n) } }
-                        NumericField(v.reps[set.key], "Reps feitas", Modifier.weight(1f), "reps-${session.id}-${v.profile.key}-${set.key}") { n -> vm.edit { vm.engine.reps(it, ex, set, n) } }
-                    }
+                    NumericField(v.reps[set.key], "Reps feitas", Modifier.fillMaxWidth(), "reps-${session.id}-${v.profile.key}-${set.key}") { n -> vm.edit { vm.engine.reps(it, ex, set, n) } }
+                    RestControls(ex, set, state, vm)
                 }
             }
-            Text("Kg usados vazio: utiliza a carga calculada. Se diferente, informe o que usou só nesta série/sessão. Reps vazias não significam zero.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-            OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = {
-                if (v.rest == null) restDialog = true
-                else vm.edit { vm.engine.startTimer(it, v.rest, ex.name, System.currentTimeMillis()) }
-            }, modifier = Modifier.fillMaxWidth()) { Text(if (v.rest == null) "Definir descanso" else "Descansar · ${v.rest.shown()} s") }
+            HorizontalDivider()
+            RestControls(ex, null, state, vm)
+            Text("Reps vazias não significam zero. Marcar uma série não inicia o descanso.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
         }
     }
     if (configuring) ProfileDialog(ex, state, vm) { configuring = false }
-    if (restDialog) RestDialog(onDismiss = { restDialog = false }) { seconds ->
-        vm.edit { current ->
-            val values = vm.engine.values(current, ex)
-            val configured = vm.engine.configure(current, ex, values.profile, values.increment, seconds)
-            vm.engine.startTimer(configured, seconds, ex.name, System.currentTimeMillis())
-        }; restDialog = false
+}
+
+@Composable private fun RestControls(ex: Exercise, set: SetSpec?, state: AppState, vm: WellnessViewModel) {
+    var adjusting by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val seconds = vm.engine.restSeconds(state, ex, set)
+    fun start(duration: Long = seconds, save: Boolean = false) {
+        if (Build.VERSION.SDK_INT >= 33 && !RestAlerts.notificationsAllowed(context)) {
+            val prefs = context.getSharedPreferences("wellness-ui", android.content.Context.MODE_PRIVATE)
+            if (!prefs.getBoolean("notification-asked", false)) {
+                prefs.edit().putBoolean("notification-asked", true).apply()
+                permission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+        vm.requestRest(vm.engine.restRequest(state, ex, set, duration, save))
+    }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Button(colors = wellnessButtonColors(), onClick = { start() }, modifier = Modifier.weight(1.8f).heightIn(min = 52.dp)) {
+            Text("${if (set == null) "Descansar para o próximo exercício" else "Descansar"} · ${RestDurations.display(seconds)}", textAlign = TextAlign.Center)
+        }
+        OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { adjusting = true }, modifier = Modifier.weight(1f).heightIn(min = 52.dp)) { Text("Ajustar descanso", textAlign = TextAlign.Center) }
+    }
+    if (adjusting) RestAdjustDialog(seconds, set?.label ?: "Próximo exercício", onDismiss = { adjusting = false }) {
+        start(it, true); adjusting = false
     }
 }
 
@@ -278,8 +349,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                 Text("Use nomes diferentes para aparelhos ou variações diferentes. Trocar perfil não copia os quilos do anterior. Escolher o perfil anterior recupera seus valores.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                 NumericField(increment, "Incremento (kg)", identity = "increment-${profile.key}") { increment = it }
                 Text("Vazio ou zero: cálculo exato. Maior que zero: arredonda para baixo, por série.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
-                NumericField(rest, "Descanso (segundos)", identity = "rest-${profile.key}") { rest = it }
-                Text("A planilha não especifica descanso; escolha o seu. Vazio permanece sem duração definida.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                Text("Para mudar o descanso, use ‘Ajustar descanso’ abaixo da série ou ao final do exercício.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
             }
         },
         confirmButton = { TextButton(colors = wellnessTextButtonColors(), onClick = { vm.edit { vm.engine.configure(it, ex, profile, increment, rest) }; close() }) { Text("Salvar perfil") } },
@@ -299,47 +369,48 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     }
 }
 
-@Composable private fun RestDialog(onDismiss: () -> Unit, onStart: (String) -> Unit) {
-    var seconds by remember { mutableStateOf<String?>(null) }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Seu descanso") }, text = {
+@Composable private fun RestAdjustDialog(initial: Long, label: String, onDismiss: () -> Unit, onStart: (Long) -> Unit) {
+    var minutes by remember { mutableStateOf((initial / 60).toString()) }
+    var seconds by remember { mutableStateOf((initial % 60).toString()) }
+    val duration = RestDurations.parse(minutes, seconds)
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Ajustar descanso") }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("A planilha não define uma duração. Informe o tempo em segundos.")
-            NumericField(seconds, "Segundos") { seconds = it }
+            Text(label)
+            Text("A preferência será salva para esta série do mesmo exercício e perfil, em todas as semanas.")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(value = minutes, onValueChange = { if (it.length <= 10 && it.all(Char::isDigit)) minutes = it }, label = { Text("Minutos") }, colors = wellnessTextFieldColors(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+                OutlinedTextField(value = seconds, onValueChange = { if (it.length <= 2 && it.all(Char::isDigit)) seconds = it }, label = { Text("Segundos") }, colors = wellnessTextFieldColors(), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
+            }
+            if (duration == null) Text("Preencha os minutos e os segundos (de 0 a 59).", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-    }, confirmButton = { TextButton(colors = wellnessTextButtonColors(), enabled = seconds != null, onClick = { seconds?.let(onStart) }) { Text(if (seconds == null) "Informe o tempo" else "Iniciar") } },
+    }, confirmButton = { TextButton(colors = wellnessTextButtonColors(), enabled = duration != null, onClick = { duration?.let(onStart) }) { Text("Salvar e iniciar") } },
         dismissButton = { TextButton(colors = wellnessTextButtonColors(), onClick = onDismiss) { Text("Cancelar") } })
 }
 
 @Composable private fun TimerBar(state: AppState, vm: WellnessViewModel) {
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     val timer = state.timer
-    LaunchedEffect(timer.deadline) {
-        if (timer.deadline != null) {
+    val context = LocalContext.current
+    val owner = LocalLifecycleOwner.current
+    LaunchedEffect(timer, owner) {
+        owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            // Refresh against the deadline immediately on return from background.
+            RestAlerts.reschedule(context, timer)
             while (true) {
                 now = System.currentTimeMillis()
-                if (now >= timer.deadline) {
-                    val tone = runCatching { ToneGenerator(AudioManager.STREAM_NOTIFICATION, 70) }.getOrNull()
-                    try {
-                        tone?.startTone(ToneGenerator.TONE_PROP_ACK, 250)
-                        delay(300)
-                    } finally { tone?.release() }
-                    vm.edit { current -> if (current.timer.deadline == timer.deadline)
-                        current.copy(timer = TimerState(remainingMs = 0, label = timer.label)) else current }
-                    break
-                }
+                if (timer.deadline != null && now >= timer.deadline) { RestAlerts.deliver(context); break }
                 delay(250)
             }
         }
     }
     val left = vm.engine.remaining(timer, now) ?: return
-    Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-            val seconds = (left + 999) / 1000
-            Text(if (left == 0L) "Descanso concluído" else "Descanso · ${seconds / 60}:${(seconds % 60).toString().padStart(2, '0')}", fontWeight = FontWeight.Bold)
-            Text(timer.label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+    Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 2.dp, modifier = Modifier.testTag("rest-banner")) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
+            Text(if (left == 0L) "Descanso concluído ✓" else "Descanso · ${RestDurations.display((left + 999) / 1000)}${if (timer.deadline == null) " · Pausado" else ""}", fontWeight = FontWeight.Bold)
+            Text(timer.label, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, maxLines = 2)
             Row {
                 if (left > 0) TextButton(colors = wellnessTextButtonColors(), onClick = { vm.edit { if (it.timer.deadline != null) vm.engine.pauseTimer(it, System.currentTimeMillis()) else vm.engine.resumeTimer(it, System.currentTimeMillis()) } }) { Text(if (timer.deadline != null) "Pausar" else "Continuar") }
-                TextButton(colors = wellnessTextButtonColors(), onClick = { vm.edit { it.copy(timer = TimerState()) } }) { Text("Fechar") }
+                TextButton(colors = wellnessTextButtonColors(), onClick = { vm.edit { it.copy(timer = TimerState()) } }) { Text("Encerrar") }
             }
         }
     }
@@ -379,7 +450,8 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                     ex.sets.forEach { set ->
                         HorizontalDivider()
                         Text("${if (set.done) "✓" else "○"} ${set.spec.label} · meta ${set.spec.range}", fontWeight = FontWeight.SemiBold)
-                        Text("${set.usedLoad.shown()} kg · ${set.reps.shown()} reps${if (set.explicitLoad) " · carga informada" else " · carga calculada"}")
+                        Text("${set.usedLoad.shown()} kg · ${set.reps.shown()} reps${if (set.explicitLoad) " · carga informada anteriormente" else " · carga calculada"}")
+                        set.restSeconds?.let { Text("Descanso: ${RestDurations.display(it)}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
                     }
                 }
             }
@@ -388,6 +460,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
 }
 
 @Composable private fun SettingsScreen(vm: WellnessViewModel, state: AppState, onExport: () -> Unit, onImport: () -> Unit) {
+    val context = LocalContext.current
     LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item { Text("Seu cuidado, guardado", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
         item { Text("Tudo fica neste aparelho, sem conta. Exporte um backup antes de trocar de celular ou desinstalar o aplicativo.") }
@@ -395,8 +468,12 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
         item { OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = onImport, enabled = vm.pending == 0, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text(if (vm.pending > 0) "Salvando…" else "Importar backup") } }
         item { Text("O backup inclui valores compartilhados, configurações, marcações, temporizador e ${state.history.size} conclusões. A importação valida o arquivo e pede confirmação antes de substituir os dados.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
         item { Text("Sobre seu plano", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
-        item { Text("ACADEMIAWELLNESS.xlsx · 25 abas · 24 sessões. As configurações e fórmulas vêm do arquivo. Para mudar aparelho, forma de registrar, incremento ou descanso, use ‘Aparelho e carga’ no exercício.") }
-        item { Text("Os vídeos precisam de internet. O restante funciona offline. O descanso usa o horário de término, inclusive ao fechar a tela; o aviso sonoro é dado com o aplicativo aberto. Não há serviço de alarme em segundo plano.") }
+        item { Text("ACADEMIAWELLNESS.xlsx · 25 abas · 24 sessões. As configurações e fórmulas vêm do arquivo. Para mudar aparelho, forma de registrar ou incremento, use ‘Aparelho e carga’. O descanso tem um ajuste próprio por série e entre exercícios.") }
+        item { Text("Avisos de descanso", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
+        item { Text("A contagem usa um horário de término e continua correta com a tela bloqueada. O Android controla som e vibração pelo canal ‘Descanso concluído’, pelo volume e pelo modo Não perturbe. Sem permissão de notificação, o aviso aparece ao voltar ao treino. Sem alarmes precisos, o Android pode atrasar o aviso durante a economia de bateria.") }
+        item { OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { RestAlerts.notificationSettings(context) }) { Text("Configurar notificações, som e vibração") } }
+        if (Build.VERSION.SDK_INT >= 31) item { OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { RestAlerts.exactSettings(context) }) { Text("Permitir alarmes precisos") } }
+        item { Text("Os vídeos abrem uma busca no TikTok e precisam de internet. O restante funciona offline. As dicas complementam a planilha; peça orientação presencial para ajustar o aparelho ao seu corpo.") }
         items(vm.plan.notes) { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium) }
         item { Text("Fonte SHA-256: ${vm.plan.sourceSha256}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall) }
     }

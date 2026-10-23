@@ -40,28 +40,32 @@ fun digest(value: String): String = MessageDigest.getInstance("SHA-256")
     val rest: String? = null, val reps: Map<String, String?> = emptyMap()
 )
 @Serializable data class SetRecord(val done: Boolean = false, val actualLoad: String? = null)
-@Serializable data class TimerState(val deadline: Long? = null, val remainingMs: Long? = null, val label: String = "")
+@Serializable data class TimerState(
+    val deadline: Long? = null, val remainingMs: Long? = null, val label: String = "",
+    val id: String = "", val exerciseName: String = "", val seriesLabel: String = ""
+)
 @Serializable data class SnapshotSet(
     val spec: SetSpec, val suggestedLoad: String?, val usedLoad: String?,
-    val explicitLoad: Boolean, val reps: String?, val done: Boolean
+    val explicitLoad: Boolean, val reps: String?, val done: Boolean, val restSeconds: Long? = null
 )
 @Serializable data class SnapshotExercise(
     val id: String, val name: String, val profile: Profile, val workLoad: String?,
     val increment: String?, val rest: String?, val video: String, val notes: List<String>,
-    val sets: List<SnapshotSet>
+    val sets: List<SnapshotSet>, val betweenRestSeconds: Long? = null
 )
 @Serializable data class CompletedWorkout(
     val id: String, val sessionId: String, val title: String, val week: Int,
     val phase: String, val finishedAt: Long, val exercises: List<SnapshotExercise>
 )
 @Serializable data class AppState(
-    val format: Int = 1, val sourceSha256: String,
+    val format: Int = 2, val sourceSha256: String,
     val shared: Map<String, SharedValues> = emptyMap(),
     // One assignment for each original exercise/equipment/registration group, across all 24 sessions.
     val profiles: Map<String, Profile> = emptyMap(),
     val records: Map<String, SetRecord> = emptyMap(),
     val history: List<CompletedWorkout> = emptyList(),
-    val timer: TimerState = TimerState()
+    val timer: TimerState = TimerState(),
+    val restPreferences: Map<String, Long> = emptyMap()
 )
 
 object Loads {

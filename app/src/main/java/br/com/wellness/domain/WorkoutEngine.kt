@@ -59,8 +59,8 @@ class WorkoutEngine(val plan: Plan) {
                         val record = record(state, session, ex, set)
                         val suggested = Loads.calculate(v.load, set.factor, v.increment)
                         SnapshotSet(set.copy(), suggested, record.actualLoad ?: suggested,
-                            record.actualLoad != null, v.reps[set.key], record.done)
-                    })
+                            record.actualLoad != null, v.reps[set.key], record.done, restSeconds(state, ex, set))
+                    }, restSeconds(state, ex, null))
             })
         return state.copy(history = state.history + snapshot)
     }
@@ -74,6 +74,25 @@ class WorkoutEngine(val plan: Plan) {
         val ms = Loads.parse(seconds)!!.multiply(java.math.BigDecimal(1000)).longValueExact()
         require(ms >= 0 && ms < Long.MAX_VALUE - now)
         return state.copy(timer = TimerState(deadline = now + ms, label = label))
+    }
+    fun restKey(state: AppState, ex: Exercise, set: SetSpec?): String =
+        "${profile(state, ex).key}|${set?.key ?: "between"}"
+    fun restSeconds(state: AppState, ex: Exercise, set: SetSpec?): Long =
+        state.restPreferences[restKey(state, ex, set)] ?: if (set == null) {
+            // The old exercise-level rest button maps to rest between exercises.
+            runCatching { Loads.parse(values(state, ex).rest)?.toBigInteger()?.toString()?.toLongOrNull() }
+                .getOrNull()?.takeIf { it <= (Long.MAX_VALUE - System.currentTimeMillis()) / 1000 } ?: 180L
+        } else RestDurations.defaultSeconds(set.key.substringBefore(':'))
+    fun restRequest(state: AppState, ex: Exercise, set: SetSpec?, seconds: Long? = null, save: Boolean = false) =
+        RestRequest(restKey(state, ex, set), ex.name, set?.label ?: "Próximo exercício",
+            seconds ?: restSeconds(state, ex, set), save)
+    fun timerActive(state: AppState, now: Long): Boolean = (remaining(state.timer, now) ?: 0L) > 0
+    fun beginRest(state: AppState, request: RestRequest, now: Long, replace: Boolean = false): AppState {
+        require(!timerActive(state, now) || replace) { "Já existe um descanso ativo. Confirme a substituição." }
+        require(request.seconds >= 0 && request.seconds <= (Long.MAX_VALUE - now) / 1000)
+        return state.copy(timer = TimerState(now + request.seconds * 1000, label = "${request.exerciseName} · ${request.seriesLabel}",
+            id = UUID.randomUUID().toString(), exerciseName = request.exerciseName, seriesLabel = request.seriesLabel),
+            restPreferences = if (request.savePreference) state.restPreferences + (request.preferenceKey to request.seconds) else state.restPreferences)
     }
     fun pauseTimer(state: AppState, now: Long): AppState = state.copy(
         timer = state.timer.copy(deadline = null, remainingMs = remaining(state.timer, now)))

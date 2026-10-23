@@ -2,6 +2,49 @@
 
 Planilha oficial: `ACADEMIAWELLNESS.xlsx`, SHA-256 `59cd316986fdf8c8619ff1003961b192a65166a8bb3b9e20baed016e6725cb1a`.
 
+## Atualização 1.2 — resultados desta entrega (23/10/2026)
+
+- `applicationId=br.com.wellness` preservado; `versionCode` de 2 para **3**, `versionName=1.2`, Android mínimo API 26.
+- Cabeçalho centralizado, boas-vindas, quatro abas, catálogo dos **19 exercícios**, busca sem distinção de acentos/maiúsculas, variantes preservadas, vídeos por busca e dicas separadas dos cálculos.
+- O campo editável por série “Kg usados” foi retirado da interface. O modelo `SetRecord.actualLoad` e as cópias `usedLoad`/`explicitLoad` continuam no armazenamento e nos backups, incluindo valores zero. A carga de trabalho e as reps continuam compartilhadas por perfil e identidade semântica da série.
+- Migração **aditiva de formato 1 para 2**, mantendo o caminho `wellness-v1.json`. Ler o arquivo antigo não o substitui; a próxima gravação atômica inclui os campos novos. Não existe limpeza automática nem migração destrutiva. Formatos 1 e 2 são aceitos na importação. Histórico antigo recebe somente campos opcionais ausentes, sem recalcular ou sobrescrever os valores já concluídos.
+- Os padrões de descanso vieram do pedido desta atualização, não foram atribuídos à planilha. Preferências por perfil + tipo/número da série; tempo entre exercícios separado. O descanso por exercício da versão anterior é reaproveitado como descanso entre exercícios. Snapshot de novas conclusões guarda também os descansos daquele momento.
+- `RestAlerts` usa AlarmManager e notificação por canal, sem serviço em primeiro plano. Pausa/encerramento cancelam o alarme; substituição troca o único alarme. A contagem usa prazo de término salvo em disco. O receiver não escreve no arquivo de treinos. Preferências próprias deduplicam o aviso. Notificação, som/vibração, Não perturbe e autorização de alarmes precisos ficam sob controle do Android. Sem alarme preciso, há fallback para alarme permitido em economia de bateria, sujeito a atraso. Sem notificação permitida, fica o aviso visual no treino.
+
+### Comandos realmente executados
+
+```sh
+source /workspace/toolchains/wellness-env.sh
+./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest lintDebug --console=plain
+```
+
+Resultado final: **BUILD SUCCESSFUL**, **21 testes**, **zero falhas, erros ou ignorados**, e **lint sem problemas**. Distribuição: 10 testes originais, 8 testes da atualização, 2 testes de integração de plataforma com Robolectric e 1 teste de navegação Compose com Robolectric. As advertências de depreciação no compilador de testes referem-se a APIs de simulação do próprio Robolectric; não são erros de lint do aplicativo.
+
+Verificações executadas:
+
+- Os **4.158 casos** de fórmulas originais continuam passando. Abrangem as 594 séries e diferentes entradas, incrementos, vazio e zero; exemplos reais permanecem na seção abaixo.
+- A sincronização foi exercitada entre todas as ocorrências das 24 sessões. Working Set 1 é identificado por chave, mesmo quando muda de posição; aparelhos e variações mantêm valores separados.
+- Fixture com o esquema antigo real (formato 1, sem campos novos): carga, reps zero, incremento, descanso anterior, marcas, carga específica zero, temporizador e histórico são lidos e preservados; gravação/reabertura e exportação/importação mantêm os dados. Editar os valores compartilhados e os novos descansos não reescreve o snapshot antigo.
+- Todos os tipos de série existentes no arquivo recebem o descanso padrão pedido. Rest Pause tem padrão 20 s, mas não foi acrescentado onde não existe. Preferências por tipo/número propagam entre fases e sessões equivalentes sem misturar perfis. Entradas inválidas de minutos/segundos e overflow são rejeitadas.
+- Substituição exige confirmação para cronômetro em andamento **ou pausado**. Marcar uma série não inicia descanso. Descanso não marca série nem conclui exercício/sessão. O horário de término, pausa e retomada são persistidos e conferidos usando tempos controlados.
+- As 19 URLs são decodificadas nos testes para a frase exata `como fazer [nome]`, sem semana/carga/série. Teste Android simulado força a recusa dos dois pacotes TikTok e verifica o navegador recebendo **a mesma URL**. Outro caminho aceita o primeiro pacote e não abre navegador. Isso verifica o roteamento, não o comportamento de um TikTok real ou seus resultados de busca.
+- AlarmManager e NotificationManager simulados: agendamento, deduplicação, cancelamento ao pausar, substituição e uma única notificação ao vencer o prazo. Não equivale a medir latência real do Android, doze, som ou vibração em hardware.
+- **Navegação em execução com Robolectric/Android 14 simulado, gráficos nativos**: inicialização com registros anteriores, cabeçalho/boas-vindas, Exercícios, busca `sumo`, botão de vídeo, Histórico, Ajustes, retorno à sessão já concluída, seção de dica/cálculo, ausência do campo Kg usados, ajuste 1:05, faixa de contagem, pausa, confirmação/manutenção do timer, retomada, rolagem e encerramento. O teste verifica que a faixa continua visível na rolagem e que o arquivo preserva carga antiga, kg zero, histórico e preferência ajustada.
+- Capturas pela captura de janela Compose não funcionaram no Robolectric (`forceRedraw` expirou). A alternativa de desenho direto do View produziu imagens parciais de camadas; elas foram inspecionadas, mas **não validam a aparência completa**. Os testes de semântica/visibilidade passaram. As capturas incompletas não são entregues como prints de um celular.
+- `apksigner verify --print-certs`: APK novo e APK 1.1 têm certificado SHA-256 **`f45a0d175aed2396cba54737eee94ee8b96fda1190f9a8c5d95619687a7566d5`**. `aapt dump badging` confirma mesmo pacote e número de versão aumentado. O JSON oficial no APK novo é byte a byte igual ao arquivo embarcado no APK anterior; a planilha e seus cálculos não mudaram.
+
+### Limitações atuais
+
+Não houve teste em celular físico nem instalação por cima do aplicativo do usuário. Sem `/dev/kvm`, não foi repetido o emulador de sistema completo que morreu na entrega inicial; desta vez a navegação foi executada com Robolectric. O APK de instrumentação foi compilado, mas `connectedDebugAndroidTest` não foi executado nesta atualização. O navegador/TikTok reais, a concessão de permissões do fabricante e os avisos com tela bloqueada ainda precisam de conferência em aparelho. A identidade/assinatura e a migração permitem atualizar sem desinstalar; não se afirma acesso aos registros pessoais do usuário.
+
+As fontes institucionais de execução ficaram bloqueadas pelo proxy com HTTP 403. Foram consultadas as observações da planilha e uma base técnica comunitária pública; fontes, correspondências, adaptações e cópia das entradas estão em [DICAS-E-FONTES.md](DICAS-E-FONTES.md). A consulta de fontes primárias confiáveis solicitada pelo usuário permanece limitada por esse bloqueio; não se atribui validação clínica às dicas. Não foram inventadas regulagens universais.
+
+O APK 1.2 e seu checksum atualizado estão em `instalar/Wellness-teste.apk` e `instalar/SHA256SUMS.txt`.
+
+## Registros das entregas anteriores
+
+As seções seguintes descrevem verificações históricas das versões 1.0 e 1.1; as limitações específicas daquela época não substituem os resultados 1.2 acima.
+
 ## Atualização 1.1 — somente tema e identificação da versão
 
 - Paleta fixa preto, branco e vermelho em `res/values/colors.xml`, aplicada pelo `WellnessTheme` a todas as telas. As barras nativas usam os mesmos recursos; o modo claro/escuro do celular não seleciona outra paleta.

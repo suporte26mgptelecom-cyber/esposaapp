@@ -12,9 +12,22 @@ android {
         applicationId = "br.com.wellness"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        unitTests.all { testTask ->
+            // Keep test caches writable and separate from the developer's home directory.
+            val testHome = layout.buildDirectory.dir("test-home").get().asFile
+            testHome.mkdirs()
+            testTask.systemProperty("user.home", testHome.absolutePath)
+            testTask.systemProperty("robolectric.dependency.repo.url", "https://repo.maven.apache.org/maven2")
+            listOf("https.proxyHost", "https.proxyPort", "http.proxyHost", "http.proxyPort", "javax.net.ssl.trustStore").forEach { key ->
+                System.getProperty(key)?.let { testTask.systemProperty(key, it) }
+            }
+        }
     }
     buildFeatures { compose = true }
     compileOptions {
@@ -33,6 +46,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.test:runner:1.6.2")

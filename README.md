@@ -2,13 +2,19 @@
 
 Aplicativo em português para registrar os treinos da **ACADEMIAWELLNESS.xlsx**, sem conta e sem internet. Feito em Kotlin e Jetpack Compose. Requer Android 8.0 ou mais recente.
 
-## Atualização 1.1 — tema preto, branco e vermelho
+## Atualização 1.2 — exercícios, dicas e descansos
 
-Esta versão muda somente as cores e as indicações visuais de seleção/indisponibilidade. A organização das telas, os exercícios, cálculos, compartilhamento, histórico e formato dos registros continuam iguais. O tema é fixo, mesmo que o celular esteja no modo claro.
+Cabeçalho centralizado **WELLNESS · Seu treino com segurança**, boas-vindas **Bem-vinda, Nanda** e nova aba **Exercícios**, com busca entre os 19 exercícios e variações do plano. O tema continua preto, branco e vermelho, independentemente do tema do celular. Progresso, próximo treino, semanas e cálculos foram preservados.
 
-Para atualizar, baixe o APK da pasta `instalar`, abra-o no celular e escolha **Atualizar**. **Instale por cima do aplicativo existente; não desinstale nem limpe os dados.** O `applicationId` continua `br.com.wellness`, o `versionCode` passou de 1 para 2 e a mesma chave de assinatura foi preservada.
+Os botões vermelhos **Buscar vídeo no TikTok** abrem a busca “como fazer [nome do exercício]”. Tentam o TikTok e, se ele não estiver disponível ou recusar o link, abrem a mesma pesquisa em um navegador. Não há vídeo fixo. As dicas aparecem antes das séries; as notas de cálculo ficam em **Sobre o cálculo**, expansível. As fontes efetivamente consultadas e a limitação de acesso às fontes institucionais estão em [docs/DICAS-E-FONTES.md](docs/DICAS-E-FONTES.md).
 
-A paleta está centralizada em `app/src/main/res/values/colors.xml`. O mapeamento para os componentes fica em `app/src/main/java/br/com/wellness/ui/theme/WellnessTheme.kt`. As barras do Android usam a mesma paleta. O teclado numérico é o teclado do celular; não existe teclado próprio no aplicativo.
+A carga de trabalho continua editável e cada série mostra a carga calculada, **Reps feitas** e a marcação de feita. O campo editável **Kg usados** saiu da tela: seus valores antigos, inclusive zero, continuam no arquivo, nos backups e nos registros de conclusão. Os descansos ajustados são salvos por exercício + perfil + tipo/número da série, em todas as semanas. O descanso entre exercícios tem preferência separada. O histórico já concluído permanece imutável.
+
+Esta versão usa `applicationId=br.com.wellness`, `versionCode=3` e `versionName=1.2`. A mesma chave de assinatura do APK 1.1 está disponível e é usada na atualização. O arquivo local mantém o nome `wellness-v1.json`; a migração aditiva do conteúdo de formato 1 para 2 não apaga dados e aceita backups antigos. A importação por escolha do usuário continua sendo restauração completa, com confirmação.
+
+Antes de atualizar, exporte um backup em **Ajustes** por precaução. Abra o novo APK e escolha **Atualizar**, instalando por cima. Não desinstale nem limpe os dados. Caso o Android recuse a assinatura, pare e use a chave da instalação anterior; não tente resolver desinstalando.
+
+A paleta está centralizada em `app/src/main/res/values/colors.xml` e aplicada por `ui/theme/WellnessTheme.kt`. O teclado numérico é o teclado do próprio celular.
 
 ## Baixar e instalar sem programar
 
@@ -23,17 +29,15 @@ Para baixar a pasta inteira pelo GitHub, use **Code → Download ZIP**. Extraia 
 
 ## Entrega e resultado
 
-O APK de teste foi compilado, assinado e verificado nesta nuvem. Os 10 testes locais passaram (incluem 4.158 casos de cálculo), e a análise Android terminou sem avisos. **O teste de interface ficou bloqueado pelo emulador sem aceleração da nuvem; o aplicativo ainda precisa ser aberto e conferido em um celular ou emulador do Android Studio.** Os detalhes estão em `docs/VALIDACAO.md`.
-
-O projeto inclui o código completo e um APK pronto na pasta `instalar`. Para abrir em outro computador, baixe **Code → Download ZIP**, extraia e selecione a pasta extraída no Android Studio. SDK, caches, registros pessoais e chaves de assinatura não são incluídos.
+O projeto completo e o APK ficam no GitHub, com o instalador na pasta `instalar`. SDK, caches, registros pessoais e chaves de assinatura não entram no repositório. Os resultados da compilação, dos testes e suas limitações estão em [docs/VALIDACAO.md](docs/VALIDACAO.md).
 
 ## Usar no celular
 
 1. Instale o APK de teste seguindo as instruções abaixo.
 2. Toque em **Começar treino**. A tela inicial mostra o próximo treino e quantos dos 24 já foram concluídos.
 3. Confira o aparelho em **Aparelho e carga**. Digite a **carga de trabalho**; as cargas de cada série serão calculadas conforme a fase da planilha.
-4. Digite as **Reps feitas** e marque a caixa quando terminar a série. Se a carga usada for diferente da calculada, preencha **Kg usados** naquela série. Se deixar esse campo vazio, o registro utilizará a carga calculada.
-5. Use **Definir descanso** para escolher um tempo. Depois, o botão inicia esse descanso. O temporizador permite pausar e continuar.
+4. Digite as **Reps feitas** e marque a caixa quando terminar a série. Confira a carga calculada. A marcação não inicia descanso automaticamente.
+5. Toque em **Descansar** abaixo da série, ou em **Ajustar descanso** para editar minutos e segundos e salvar/iniciar. A faixa fixa no topo permite pausar, continuar e encerrar. Outro descanso exige confirmação antes de substituir o atual. Ao final do exercício há um descanso próprio para o próximo exercício; ele não avança o treino.
 6. Toque em **Concluir sessão** para guardar uma cópia no histórico. É possível concluir com campos vazios ou séries não marcadas; a confirmação mostra quantas séries foram feitas. Os dados não preenchidos continuam vazios.
 
 Os registros são salvos automaticamente. Espere a indicação **Salvando…** desaparecer antes de encerrar o aplicativo à força. Fechar e abrir normalmente preserva os dados. Desinstalar o aplicativo ou limpar seus dados apaga os registros: faça backup antes.
@@ -42,7 +46,7 @@ Os registros são salvos automaticamente. Espere a indicação **Salvando…** d
 
 - Carga de trabalho e repetições são compartilhadas em todas as 24 sessões pelo mesmo **exercício + equipamento + forma de registrar + identificação da variação**.
 - As repetições correspondem pelo **tipo e número**: `Working Set 1` só atualiza `Working Set 1`. Uma série que não existe naquela fase não é criada.
-- Marcações de série feita e **Kg usados** pertencem somente à sessão atual. Não são compartilhadas.
+- Marcações de série feita e registros antigos de **Kg usados** pertencem somente à sessão atual. Não são compartilhados. O campo de kg por série não é mais editável na interface.
 - Para distinguir dois aparelhos ou variações, dê nomes diferentes em **Identificação / variação**. Trocar o perfil não transfere suas cargas. Voltar ao perfil anterior recupera os valores dele.
 - Alterar o perfil vale nas ocorrências com a mesma configuração original do exercício. As configurações diferentes já presentes na planilha permanecem separadas.
 - A tela de treino sempre mostra os valores compartilhados atuais. Para ver exatamente o que foi usado em uma conclusão, abra **Histórico**. Ele permanece intacto após edições posteriores.
@@ -50,7 +54,13 @@ Os registros são salvos automaticamente. Espere a indicação **Salvando…** d
 
 Em **Ajustes**, use **Exportar backup** para criar um arquivo JSON. Guarde-o fora do celular. **Importar backup** valida o arquivo e pede confirmação: a restauração substitui todos os registros atuais, sem misturar históricos. Um arquivo inválido não apaga seus dados. Limite por arquivo: 16 MB.
 
-Os vídeos abrem no navegador ou YouTube e precisam de internet. O treino, os cálculos, o histórico e o backup funcionam offline. O temporizador preserva seu horário de término ao fechar a tela; o aviso sonoro ocorre com o aplicativo aberto. Não há alarme de segundo plano.
+Os vídeos precisam de internet. O treino, os cálculos, o histórico e o backup funcionam offline.
+
+### Descanso e avisos
+
+Os tempos padrão foram solicitados nesta atualização: aquecimento **0:40**, feeder **1:30**, working/top/back off **3:00**, rest pause **0:20** (caso esse tipo exista no plano). Nenhuma série rest pause foi acrescentada à planilha. Entre exercícios: **3:00**. Um descanso entre exercícios já configurado na versão antiga é reaproveitado; valores legados fracionários permanecem armazenados, mas a nova escolha de minutos/segundos usa segundos inteiros.
+
+A contagem fica acima da lista do treino e usa o horário de término, mesmo ao minimizar, bloquear a tela ou encerrar o processo normalmente. O alarme nativo permite avisar com o app em segundo plano. O Android pede permissão de notificações a partir da versão 13. Em **Ajustes**, **Configurar notificações, som e vibração** abre o canal do aparelho: volume, som, vibração, Não perturbe e bloqueios do sistema são respeitados. **Permitir alarmes precisos** abre o ajuste Android 12 ou superior. Sem essa autorização, o aviso pode atrasar na economia de bateria; a contagem ao reabrir continua correta. Se notificações estiverem bloqueadas, haverá aviso visual no treino. Não há retomada automática do alarme após reiniciar o celular ou forçar a parada do aplicativo pelas configurações do Android; ao abrir o app, o horário salvo volta a ser conferido.
 
 ## Gerar o APK no Android Studio (caminho mais fácil)
 
@@ -109,7 +119,7 @@ São 8 semanas, 24 sessões, 130 ocorrências de exercícios e 594 séries. A1 �
 - Back offs: 75% da **carga de trabalho**, mesmo após top set.
 - Incremento vazio ou zero: cálculo exato. Incremento positivo: arredondar para baixo por série. Não há divisão automática por lados nem desconto de barra.
 - Nenhum aumento automático entre treinos. O valor zero é preservado; campo vazio não vira zero.
-- A única carga inicial preenchida é 5 kg na cadeira abdutora. Nenhum descanso ou outra carga foi presumido.
+- A única carga inicial preenchida é 5 kg na cadeira abdutora. Nenhuma outra carga foi presumida. A planilha não traz descanso; os padrões da versão 1.2 são a adaptação explicitamente solicitada pelo usuário.
 
 As adaptações aprovadas já estavam no arquivo e foram preservadas: hack squat, leg press unilateral, flexora sentada, elevação pélvica e retirada do step up. As alternativas e observações da planilha também aparecem no aplicativo.
 
@@ -125,7 +135,7 @@ Há configurações incomuns **preservadas** na S1 A2: remada articulada unilate
 
 Para refazer a extração, instale `tools/requirements.txt` em um ambiente Python e execute os dois scripts. Python não é necessário para usar nem compilar o aplicativo.
 
-Testes locais: `./gradlew :app:testDebugUnitTest`. Exercitam todas as fórmulas, sincronização entre todas as ocorrências, variações e equipamentos separados, vazio versus zero, persistência em arquivo, histórico imutável, backups inválidos e temporizador.
+Testes locais: `./gradlew :app:testDebugUnitTest`. Incluem fórmulas, sincronização, perfis separados, vazio versus zero, persistência, histórico imutável, migração do formato antigo, backups, tempos de descanso e rotas de vídeo. Há testes de interface e plataforma com Robolectric (Android simulado na JVM, sem KVM); a primeira execução baixa também esse Android de teste do Maven Central.
 
 Teste em dispositivo/emulador: `./gradlew :app:connectedDebugAndroidTest`. Ele abre a interface, altera uma carga, marca uma série, fecha e reabre a Activity, verifica a persistência e confere o compartilhamento em outra sessão. Use um dispositivo de teste: esse teste apaga os registros do aplicativo no dispositivo selecionado.
 

@@ -1,0 +1,135 @@
+[
+  {
+    "id": "cadeira-abdutora",
+    "tip": "Mantenha a pelve e o tronco estáveis no apoio. Afaste as pernas com controle e retorne sem deixar as placas baterem; evite embalar o corpo.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "cadeira-flexora",
+    "tip": "Apoie as costas e ajuste banco e apoios ao seu corpo conforme as instruções do aparelho. Flexione os joelhos sem levantar o quadril e retorne devagar, sem soltar o peso.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "hack-squat",
+    "tip": "Mantenha costas e ombros apoiados e os pés firmes na plataforma. Desça com controle, acompanhando a direção dos pés com os joelhos; evite tirar a pelve do apoio ou travar os joelhos na subida.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "cadeira-extensora",
+    "tip": "Mantenha costas e quadril apoiados e ajuste o rolo à sua perna conforme o aparelho. Estenda os joelhos sem impulso e retorne lentamente; não bata as placas nem levante o quadril.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "leg-press-unilateral",
+    "tip": "Apoie costas e pelve, mantendo o pé da perna que trabalha firme na plataforma. Flexione e estenda com controle, sem girar a pelve ou travar o joelho; mantenha o joelho na direção do pé.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "elevacao-pelvica-no-smith-maquina-ou-livre",
+    "tip": "Mantenha os pés firmes e o tronco estável no apoio adequado à variação escolhida. Eleve a pelve contraindo os glúteos e desça com controle; evite terminar arqueando a lombar.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "supino-inclinado-na-maquina",
+    "tip": "Apoie costas e pés e ajuste o banco conforme o aparelho. Empurre as alças com controle e retorne sem bater as placas; mantenha os punhos alinhados e não descole o tronco para completar o movimento.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "elevacao-lateral-com-halteres-sentada",
+    "tip": "Sente com os pés firmes e o tronco estável. Eleve os braços levemente à frente do corpo e abaixe com controle; evite embalar o tronco ou encolher os ombros.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "remada-articulada-unilateral",
+    "tip": "Mantenha o tronco estável e use o apoio disponível no aparelho. Puxe conduzindo o cotovelo para trás e retorne com controle; evite rodar o tronco ou puxar com um tranco.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "puxada-alta-com-pegada-neutra-ou-triangulo",
+    "tip": "Firme os pés e mantenha o tronco estável. Puxe a pegada à frente do corpo em direção ao alto do peito, conduzindo os cotovelos para baixo; retorne sem soltar o peso e evite embalar o tronco.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "desenvolvimento-na-maquina-articulada",
+    "tip": "Mantenha costas e pés apoiados e ajuste o banco conforme o aparelho. Empurre as alças para cima e retorne com controle; evite arquear a lombar ou encolher os ombros para completar a repetição.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "triceps-na-polia-alta-com-barra-reta-ou-v",
+    "tip": "Fique com os pés firmes e os cotovelos próximos do tronco. Estenda os cotovelos sem mover os ombros e retorne devagar; evite balançar o corpo ou deixar o peso puxar os braços.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "leg-press-45o",
+    "tip": "Mantenha costas e pelve apoiadas e os pés firmes. Desça a plataforma com controle e suba sem travar os joelhos; evite que a pelve se desprenda do banco ou que os joelhos percam a direção dos pés.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "stiff-unilateral",
+    "tip": "Mantenha o pé de apoio firme, o joelho levemente flexionado e a coluna estável. Leve o quadril para trás, aproximando a carga da perna, e retorne com controle; evite girar a pelve ou arredondar as costas.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "elevacao-lateral-com-halteres-sentada-90o",
+    "tip": "Use o banco indicado no plano, mantendo pés e tronco estáveis. Eleve os braços levemente à frente do corpo e desça devagar; evite impulso com o tronco e tensão por encolher os ombros.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "remada-baixa-na-polia-com-barra-reta",
+    "tip": "Mantenha os pés apoiados e a coluna estável com a pegada pronada do plano. Puxe a barra em direção ao abdômen e retorne com controle; evite embalar o tronco ou arredondar a lombar.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "elevacao-lateral-na-polia",
+    "tip": "Posicione-se com apoio firme e mantenha o tronco estável. Eleve o braço levemente à frente do corpo e retorne com controle; evite inclinar o tronco ou encolher o ombro para mover a carga.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "terra-sumo",
+    "tip": "Use a base ampla com os braços entre as pernas e mantenha a carga próxima do corpo. Empurre o chão e estenda quadris e joelhos com controle; evite arredondar as costas ou terminar inclinando o tronco para trás.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  },
+  {
+    "id": "abducao-de-quadril-na-polia",
+    "tip": "Firme a perna de apoio e use um apoio estável para o equilíbrio. Afaste a perna lateralmente e retorne com controle; evite inclinar o tronco, girar a pelve ou usar impulso.",
+    "sources": [
+      "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+    ]
+  }
+]
