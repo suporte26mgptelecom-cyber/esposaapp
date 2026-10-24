@@ -35,10 +35,16 @@ class WellnessViewModel(application: Application) : AndroidViewModel(application
         private set
     var pendingRest by mutableStateOf<RestRequest?>(null)
         private set
+    var rankCelebration by mutableStateOf<PersonalRank?>(null)
+        private set
     private val queue = Channel<suspend () -> Unit>(Channel.UNLIMITED)
     init {
         viewModelScope.launch {
-            try { state = withContext(Dispatchers.IO) { file.read() }; syncAlert(requireNotNull(state)) }
+            try {
+                val loaded = withContext(Dispatchers.IO) { file.read() }
+                if (PersonalRanking.unannounced(loaded) != null) persistState(loaded)
+                else { state = loaded; syncAlert(loaded) }
+            }
             catch (e: Exception) { fatal = "Não foi possível ler os registros. O arquivo foi preservado. Importe um backup válido. ${e.message.orEmpty()}" }
             for (job in queue) {
                 try { job() }
@@ -50,10 +56,17 @@ class WellnessViewModel(application: Application) : AndroidViewModel(application
     private fun enqueue(action: suspend () -> Unit) { pending++; queue.trySend(action) }
     fun edit(change: (AppState) -> AppState) = enqueue {
         val next = change(requireNotNull(state))
-        withContext(Dispatchers.IO) { file.write(next) }
-        state = next
-        syncAlert(next)
+        persistState(next)
     }
+    /** Acknowledge in the same atomic write BEFORE showing the celebration, so reopening cannot repeat it. */
+    private suspend fun persistState(next: AppState) {
+        val achievement = PersonalRanking.unannounced(next)
+        val claimed = PersonalRanking.acknowledge(next)
+        withContext(Dispatchers.IO) { file.write(claimed) }
+        state = claimed; syncAlert(claimed)
+        if (achievement != null) rankCelebration = achievement
+    }
+    fun dismissRankCelebration() { rankCelebration = null }
     private fun syncAlert(next: AppState) {
         runCatching { RestAlerts.sync(getApplication(), next.timer) }
             .onFailure { message = "Contagem salva; não foi possível agendar o aviso. Confira as permissões de descanso nos Ajustes." }
@@ -65,8 +78,7 @@ class WellnessViewModel(application: Application) : AndroidViewModel(application
     }
     private suspend fun persistRest(current: AppState, request: RestRequest, replace: Boolean) {
         val next = engine.beginRest(current, request, System.currentTimeMillis(), replace)
-        withContext(Dispatchers.IO) { file.write(next) }
-        state = next; syncAlert(next)
+        persistState(next)
     }
     fun cancelRest() { pendingRest = null }
     fun replaceRest() {
@@ -102,8 +114,9 @@ class WellnessViewModel(application: Application) : AndroidViewModel(application
         val text = pendingBackup ?: return
         pendingBackup = null
         enqueue {
-            val restored = withContext(Dispatchers.IO) { file.import(text) }
-            state = restored; syncAlert(restored); fatal = null; message = "Backup restaurado."
+            val restored = withContext(Dispatchers.IO) { Codec.decode(text, plan) }
+            persistState(restored)
+            fatal = null; message = "Backup restaurado."
         }
     }
 }

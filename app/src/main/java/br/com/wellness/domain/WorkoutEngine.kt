@@ -59,14 +59,27 @@ class WorkoutEngine(val plan: Plan) {
                         val record = record(state, session, ex, set)
                         val suggested = Loads.calculate(v.load, set.factor, v.increment)
                         SnapshotSet(set.copy(), suggested, record.actualLoad ?: suggested,
-                            record.actualLoad != null, v.reps[set.key], record.done, restSeconds(state, ex, set))
-                    }, restSeconds(state, ex, null))
+                            record.actualLoad != null, v.reps[set.key], record.done, when (WorkoutActions.restAction(session, ex, set)) {
+                                RestAction.SERIES -> restSeconds(state, ex, set)
+                                RestAction.NEXT_EXERCISE -> restSeconds(state, ex, null)
+                                RestAction.FINISH -> null
+                            })
+                    }, if (ex.id != session.exercises.last().id) restSeconds(state, ex, null) else null)
             })
         return state.copy(history = state.history + snapshot)
     }
     fun restart(state: AppState, session: Session): AppState = state.copy(
         records = state.records.filterKeys { !it.startsWith("${session.id}|") })
-    fun completedIds(state: AppState): Set<String> = state.history.map { it.sessionId }.toSet()
+    fun completedIds(state: AppState): Set<String> = state.history.map { it.sessionId }.filter { id -> plan.sessions.any { it.id == id } }.toSet()
+    fun startSession(state: AppState, session: Session): AppState = state.copy(startedSessions = state.startedSessions + session.id)
+    fun sessionStatus(state: AppState, session: Session): SessionStatus = when {
+        session.id in completedIds(state) -> SessionStatus.COMPLETED
+        session.id in state.startedSessions || state.records.any { (key, record) ->
+            key.startsWith("${session.id}|") && (record.done || record.actualLoad != null)
+        } -> SessionStatus.IN_PROGRESS
+        else -> SessionStatus.PENDING
+    }
+    fun ranking(state: AppState): RankProgress = PersonalRanking.progress(completedIds(state).size)
     fun next(state: AppState): Session? = plan.sessions.firstOrNull { it.id !in completedIds(state) }
     fun remaining(timer: TimerState, now: Long): Long? = timer.deadline?.let { (it - now).coerceAtLeast(0) } ?: timer.remainingMs
     fun startTimer(state: AppState, seconds: String, label: String, now: Long): AppState {

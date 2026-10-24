@@ -2,6 +2,46 @@
 
 Planilha oficial: `ACADEMIAWELLNESS.xlsx`, SHA-256 `59cd316986fdf8c8619ff1003961b192a65166a8bb3b9e20baed016e6725cb1a`.
 
+## Atualização 1.3 — resultados de 24/10/2026
+
+**Resultado final: 32 testes aprovados, zero falhas/erros/ignorados; APK 1.3 compilado; lint “No issues found”.**
+
+Comando executado com JDK 17 e SDK 35 já preparados:
+
+```sh
+source /workspace/toolchains/wellness-env.sh
+./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest lintDebug --console=plain
+```
+
+A execução final terminou **BUILD SUCCESSFUL**. Distribuição: `WorkoutTest` 10, `UpdateTest` 8, `RankingTest` 9, `PlatformTest` 3 e dois testes de interface (`InterfaceTest` e `NavigationV13Test`). Os testes originais continuam exercitando **4.158 casos das fórmulas** e a sincronização das ocorrências nas 24 sessões. As APIs simuladas do Robolectric geram advertências de depreciação na compilação dos testes; o lint do aplicativo terminou com zero problemas.
+
+### O que foi verificado
+
+- **Cabeçalho e organização:** WELLNESS centralizado, imagem do W existente, ausência da frase retirada, boas-vindas mantida, inicial sem lista de semanas e botão fixo “Ver treinos”. A lista mantém oito semanas/24 sessões na sequência do plano. Títulos são convertidos para maiúsculas somente na apresentação, em português, com acentos; nenhum identificador, título armazenado ou plano oficial foi alterado.
+- **Estados de sessão:** pendente, iniciada e concluída derivados dos registros, sem usar datas. A abertura de uma sessão passa a registrar seu início. Marcações e kg específicos antigos também reconhecem treino em andamento; cargas/reps compartilhadas não são usadas para inferir uma sessão. Conclusões antigas dão prioridade ao estado concluído; repetir/registrar novamente não apaga a conclusão anterior. Cards concluídos usam o verde centralizado `#1B5E20`, branco e ✓; os demais continuam no tema preto/branco/vermelho.
+- **Ranking:** todos os valores de 0 a 24 foram verificados, cobrindo cada marco e os intervalos. Cinco conclusões geram a frase exata “2 de 3 treinos — falta 1 para desbloquear Voltei por Milagre”. A 24ª mostra o último rank e todos conquistados. Dez conclusões da mesma sessão contam uma vez; 24 sessões em ordem invertida e com a mesma data dão todos os ranks. Não há dependência de carga, velocidade ou descanso.
+- **Comemoração:** o maior rank já anunciado é persistido na mesma gravação antes da exibição. Reinício/reabertura e backup preservam o reconhecimento; só um novo marco gera outra comemoração. Conclusões antigas da versão 1.2 são aproveitadas. A primeira abertura/importação pode anunciar uma vez o maior rank ainda não reconhecido; não reproduz uma fila de comemorações antigas.
+- **Histórico:** o novo caminho Ranking → Ver histórico abre os registros antigos. As cópias de cargas, reps, zero explícito e timestamps permanecem iguais após alterações compartilhadas e novos descansos. Novas conclusões registram o descanso de transição realmente apresentado na última série; a série final do último exercício não registra um descanso fictício. Snapshots antigos não são recalculados.
+- **Vídeos:** todas as 130 ocorrências tiveram seu link YouTube comparado aos dados oficiais. As 19 variações mantêm seus links; as elevações laterais sentada e sentada (90º) continuam distintas. Links vazios/inválidos não recebem um vídeo inventado. Testes Android simulados verificam preferência pelo aplicativo YouTube, fallback ao navegador com a URL original idêntica, nenhuma abertura sem link, TikTok com a busca correta e fallback com o mesmo texto codificado. As duas opções têm ícones, rótulos e descrição de acessibilidade específica por exercício. A origem dos ícones está em [ICONES.md](ICONES.md).
+- **Descansos:** todos os 594 pontos de série foram conferidos: 464 controles de série intermediária, 106 transições entre exercícios e 24 ações finais. Não há descanso da última série duplicado com a transição, nem descanso para um exercício após o último. Os tempos de série antigos continuam na preferência mesmo quando o controle fica oculto. A transição reaproveita sua própria preferência salva, usando 3:00 somente se não existir. A faixa fixa, pausa/retomada, confirmação de substituição e prazo de término continuam testados.
+- **Fonte maior:** a navegação foi executada com Android 14 simulado, tela de 393 × 852 dp e tamanho de fonte do sistema em **160%**. O teste verifica centro do título/logo, ranking com cinco conclusões, histórico, estados concluído/em andamento, botões de vídeo, rótulos de descanso sem overflow ou quebra no meio de palavras, disposição vertical quando necessária, inexistência de descanso após o exercício final, finalização da sexta sessão, card concluído, novo rank e reabertura por um ViewModel novo sem repetir a comemoração.
+- **Interface padrão:** outro teste executa o app em uma tela menor, abre Exercícios, busca `sumo`, confere os dois botões, passa por Ranking/Histórico/Ajustes/Ver treinos, abre Aparelho e carga, separa dica/cálculo, ajusta/inicia/pausa/substitui/retoma/encerra o cronômetro e confere preservação dos dados. O diálogo de conclusão tem texto rolável para acomodar fontes maiores.
+- **Migração/backup:** o mesmo arquivo `wellness-v1.json` permanece. Formatos 1 e 2 migram aditivamente para **3**, acrescentando `startedSessions` e `celebratedRank`. Foram verificados leitura sem sobrescrever o arquivo antigo, preservação de cargas/reps/equipamentos/tempos/marcas/zero/histórico/cronômetro, gravação/reabertura, restauração e rejeição de preferências inválidas sem substituir os dados anteriores. As novas preferências entram no backup.
+- **Identidade e assinatura:** `aapt dump badging` confirmou `applicationId=br.com.wellness`, `versionCode=4` (antes 3), `versionName=1.3`. `apksigner verify --print-certs` confirmou a mesma assinatura do APK 1.2, SHA-256 **`f45a0d175aed2396cba54737eee94ee8b96fda1190f9a8c5d95619687a7566d5`**. A chave está disponível e não entra no Git/ZIP.
+- **Fonte oficial:** a planilha XLSX, `assets/wellness.json` e o desenho `ic_wellness.xml` foram comparados byte a byte com o commit 1.2; são idênticos. O plano dentro do APK também permanece igual. Não foram alteradas fórmulas, equipamento, perfil de registro, arredondamento ou dados da prescrição.
+
+### Limites desta entrega
+
+A execução de interface foi com **Robolectric**, não com um Android de sistema completo nem celular físico. O ambiente continua sem `/dev/kvm`; o emulador instável da entrega inicial não foi reiniciado. O APK de instrumentação foi compilado, mas `connectedDebugAndroidTest` não foi executado nesta atualização. Não houve instalação por cima no celular do usuário nem acesso a seus registros pessoais; a compatibilidade foi conferida pela assinatura, identidade, versão e migração de dados.
+
+Capturas nativas por desenho direto do View foram inspecionadas para cabeçalho e opções de vídeo, mas algumas camadas de telas posteriores ficam ausentes nesse método. Elas não comprovam uma revisão visual completa em aparelho. Os testes verificaram semântica, visibilidade, acessibilidade, posição e layout dos controles com as fontes citadas. YouTube/TikTok reais, disponibilidade pública dos vídeos, som/vibração, doze e comportamento de fabricantes ao bloquear/minimizar continuam dependendo de conferência em aparelho. As limitações anteriores das fontes das dicas não mudaram: não houve nova redação das dicas nesta etapa.
+
+O checksum atual está em `instalar/SHA256SUMS.txt`; `instalar/versao.json` registra identificação, assinatura e resultados. Para atualizar, faça backup e instale por cima, escolhendo Atualizar. Não desinstale nem limpe os dados.
+
+## Registros históricos das versões anteriores
+
+Os resultados seguintes referem-se às entregas anteriores.
+
 ## Atualização 1.2 — resultados desta entrega (23/10/2026)
 
 - `applicationId=br.com.wellness` preservado; `versionCode` de 2 para **3**, `versionName=1.2`, Android mínimo API 26.

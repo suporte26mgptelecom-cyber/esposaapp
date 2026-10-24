@@ -23,7 +23,8 @@ class AppSmokeTest {
         val key = ex.originalProfile.key
         var activity = ActivityScenario.launch(MainActivity::class.java)
         try {
-            compose.waitUntil(60000) { compose.onAllNodesWithText("Começar treino").fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(60000) { compose.onAllNodesWithText("Bem-vinda, Nanda").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("home-list").performScrollToNode(hasText("Começar treino"))
             compose.onNodeWithText("Começar treino").performScrollTo().performClick()
             compose.onNodeWithContentDescription("WS-S1 A1-$key").performScrollTo().performTextReplacement("27,5")
             compose.waitUntil(60000) {
@@ -35,12 +36,14 @@ class AppSmokeTest {
             }
             activity.close()
             activity = ActivityScenario.launch(MainActivity::class.java)
-            compose.waitUntil(60000) { compose.onAllNodesWithText("Começar treino").fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(60000) { compose.onAllNodesWithText("Bem-vinda, Nanda").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("home-list").performScrollToNode(hasText("Começar treino"))
             compose.onNodeWithText("Começar treino").performScrollTo().performClick()
             compose.onNodeWithContentDescription("WS-S1 A1-$key").assertTextContains("27,5")
             compose.onNodeWithContentDescription("Feita ${ex.name} Aquecimento").assertIsOn()
-            compose.onNodeWithText("Voltar").performClick()
-            compose.onNodeWithTag("home-list").performScrollToNode(hasText("A3 · Sexta"))
+            compose.onNodeWithContentDescription("Voltar").performClick()
+            compose.onNodeWithText("Ver treinos").performClick()
+            compose.onNodeWithTag("sessions-list").performScrollToNode(hasText("A3 · Sexta"))
             compose.onNodeWithText("A3 · Sexta").performClick()
             compose.onNodeWithContentDescription("WS-S1 A3-$key").assertTextContains("27,5")
             compose.onNodeWithContentDescription("Feita ${ex.name} Aquecimento").assertIsOff()

@@ -16,7 +16,7 @@ object Codec {
     fun decode(text: String, plan: Plan): AppState {
         require(text.toByteArray(Charsets.UTF_8).size <= MAX_BYTES) { "Backup maior que 16 MB." }
         val state = json.decodeFromString<AppState>(text)
-        require(state.format in 1..2) { "Versão de backup incompatível." }
+        require(state.format in 1..3) { "Versão de backup incompatível." }
         require(state.sourceSha256 == plan.sourceSha256) { "Backup de outra planilha." }
         val exercises = plan.sessions.flatMap { it.exercises }
         val originals = exercises.map { it.originalProfile.key }.toSet()
@@ -73,8 +73,11 @@ object Codec {
             require(parts[1] == "between" || parts[1] in specs)
             require(seconds >= 0 && seconds <= (Long.MAX_VALUE - System.currentTimeMillis()) / 1000)
         }
+        require(state.startedSessions.all { it in sessions })
+        require(state.celebratedRank in 0..24 && state.celebratedRank % 3 == 0)
+        require(state.celebratedRank <= (PersonalRanking.progress(state.history.map { it.sessionId }.toSet().size).current?.threshold ?: 0))
         // Additive migration: all existing values, history and legacy actualLoad stay intact.
-        return state.copy(format = 2)
+        return state.copy(format = 3)
     }
 }
 

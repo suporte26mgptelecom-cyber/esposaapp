@@ -58,14 +58,16 @@ fun digest(value: String): String = MessageDigest.getInstance("SHA-256")
     val phase: String, val finishedAt: Long, val exercises: List<SnapshotExercise>
 )
 @Serializable data class AppState(
-    val format: Int = 2, val sourceSha256: String,
+    val format: Int = 3, val sourceSha256: String,
     val shared: Map<String, SharedValues> = emptyMap(),
     // One assignment for each original exercise/equipment/registration group, across all 24 sessions.
     val profiles: Map<String, Profile> = emptyMap(),
     val records: Map<String, SetRecord> = emptyMap(),
     val history: List<CompletedWorkout> = emptyList(),
     val timer: TimerState = TimerState(),
-    val restPreferences: Map<String, Long> = emptyMap()
+    val restPreferences: Map<String, Long> = emptyMap(),
+    val startedSessions: Set<String> = emptySet(),
+    val celebratedRank: Int = 0
 )
 
 object Loads {

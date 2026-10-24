@@ -116,7 +116,7 @@ class UpdateTest {
         before = engine.startTimer(before,"90","Descanso antigo",1000)
         // Construct the exact old schema: absent additive fields in root, timer and snapshots.
         val root = Codec.json.parseToJsonElement(Codec.encode(before)).jsonObject.toMutableMap()
-        root["format"] = JsonPrimitive(1); root.remove("restPreferences")
+        root["format"] = JsonPrimitive(1); root.remove("restPreferences"); root.remove("startedSessions"); root.remove("celebratedRank")
         root["timer"] = JsonObject(root.getValue("timer").jsonObject.filterKeys { it in setOf("deadline", "remainingMs", "label") })
         root["history"] = JsonArray(root.getValue("history").jsonArray.map { h ->
             JsonObject(h.jsonObject.toMutableMap().apply {
@@ -132,7 +132,7 @@ class UpdateTest {
         try {
             val file = File(disk,"wellness-v1.json"); file.writeText(legacy)
             val storage = StateFile(file,plan); val migrated = storage.read()
-            assertEquals(2,migrated.format)
+            assertEquals(3,migrated.format)
             assertEquals(legacy,file.readText()) // read never deletes/replaces user's file
             assertEquals(before.shared,migrated.shared); assertEquals(before.profiles,migrated.profiles)
             assertEquals(before.records,migrated.records)

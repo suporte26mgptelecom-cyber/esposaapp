@@ -136,7 +136,7 @@ class WorkoutTest {
             val backup = Codec.encode(state)
             storage.write(engine.load(state, ex, null))
             assertEquals(state, storage.import(backup))
-            for (bad in listOf("{bad", backup.replace(plan.sourceSha256, "another-plan"), backup.replace("\"load\": \"0\"", "\"load\": \"-1\""), backup.replace("\"format\": 2", "\"format\": 99"))) {
+            for (bad in listOf("{bad", backup.replace(plan.sourceSha256, "another-plan"), backup.replace("\"load\": \"0\"", "\"load\": \"-1\""), backup.replace("\"format\": 3", "\"format\": 99"))) {
                 assertThrows(Exception::class.java) { storage.import(bad) }
                 assertEquals(state, storage.read())
             }

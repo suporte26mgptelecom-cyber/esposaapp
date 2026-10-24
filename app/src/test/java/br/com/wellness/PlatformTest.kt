@@ -50,6 +50,30 @@ class PlatformTest {
         assertEquals(1,accepted.size)
         assertEquals("com.zhiliaoapp.musically",accepted.single().`package`)
     }
+    @Test fun youtubeUsesOriginalLinkAndFallsBackToTheSameLinkInBrowser() {
+        val plan = Codec.plan(context.assets.open("wellness.json").bufferedReader().use { it.readText() })
+        val exercise = plan.sessions.first().exercises.first()
+        val browser = ResolveInfo().apply { activityInfo = ActivityInfo().apply { packageName="test.browser"; name="Browser" } }
+        shadowOf(context.packageManager).addResolveInfoForIntent(Intent(Intent.ACTION_VIEW, Uri.parse("https://example.org")).addCategory(Intent.CATEGORY_BROWSABLE), browser)
+        val attempts = mutableListOf<Intent>()
+        val wrapper = object : ContextWrapper(context) {
+            override fun startActivity(intent: Intent) {
+                attempts.add(intent)
+                if (intent.`package` != "test.browser") throw ActivityNotFoundException()
+            }
+        }
+        VideoSearch.openYouTube(wrapper,exercise)
+        assertEquals(listOf("com.google.android.youtube","test.browser"),attempts.map { it.`package` })
+        assertEquals(setOf(exercise.video),attempts.map { it.dataString }.toSet())
+        attempts.clear()
+        VideoSearch.openYouTube(wrapper,exercise.copy(video=""))
+        assertTrue(attempts.isEmpty())
+        val accepted=mutableListOf<Intent>()
+        VideoSearch.openYouTube(object : ContextWrapper(context) { override fun startActivity(intent:Intent) { accepted.add(intent) } },exercise)
+        assertEquals(1,accepted.size)
+        assertEquals(exercise.video,accepted.single().dataString)
+        assertEquals("com.google.android.youtube",accepted.single().`package`)
+    }
     @Test fun alarmsAreReplacedCancelledOnPauseAndDeliverOneNotification() {
         shadowOf(context).grantPermissions(Manifest.permission.POST_NOTIFICATIONS)
         val manager = context.getSystemService(AlarmManager::class.java)
