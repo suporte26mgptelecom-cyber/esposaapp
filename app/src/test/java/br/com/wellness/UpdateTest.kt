@@ -24,17 +24,6 @@ class UpdateTest {
         assertEquals(19, ExerciseLibrary.search(plan, "").size)
         assertTrue(ExerciseLibrary.search(plan, "inexistente").isEmpty())
     }
-    @Test fun everyVideoUrlContainsOnlyTheExactExerciseSearchWithEncodedUtf8() {
-        ExerciseLibrary.catalog(plan).forEach { ex ->
-            val url = ExerciseLibrary.videoUrl(ex)
-            val uri = URI(url)
-            assertEquals("https", uri.scheme)
-            assertEquals("www.tiktok.com", uri.host)
-            assertEquals("/search", uri.path)
-            assertEquals("como fazer ${ex.name}", URLDecoder.decode(uri.rawQuery.removePrefix("q="), "UTF-8"))
-            assertFalse(url.contains(" ")); assertFalse(url.contains("+"))
-        }
-    }
     @Test fun guidesCoverEveryExerciseAndCalculationNotesAreSeparate() {
         val guides = Codec.json.decodeFromString<List<ExerciseGuide>>(File("src/main/assets/exercise-guides.json").readText())
         assertEquals(ExerciseLibrary.catalog(plan).map { it.id }.toSet(), guides.map { it.id }.toSet())

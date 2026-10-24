@@ -1,4 +1,4 @@
-# Atualizar o Wellness para 1.3
+# Atualizar o Wellness para 1.4
 
 Você não precisa programar nem instalar Android Studio.
 
@@ -6,16 +6,14 @@ Você não precisa programar nem instalar Android Studio.
 2. Baixe `Wellness-teste.apk` desta pasta. No GitHub, toque em **Download raw** (seta de download).
 3. No Android, abra o arquivo em **Downloads** e escolha **Atualizar**. Autorize a instalação por esse navegador/gerenciador quando solicitado.
 
-Instale por cima: **não desinstale nem limpe os dados**. A identificação continua `br.com.wellness`; a mesma chave do APK 1.2 é usada. O número interno aumentou de 3 para **4**, versão **1.3**. Se aparecer erro de assinatura, pare e informe o erro mantendo o aplicativo instalado.
+Instale por cima: **não desinstale nem limpe os dados**. A identificação continua `br.com.wellness`; a mesma chave do APK 1.3 é usada. O número interno aumentou de 4 para **5**, versão **1.4**. Se aparecer erro de assinatura, pare e informe o erro mantendo o aplicativo instalado.
 
-## O que mudou
+## O que mudou na versão 1.4
 
-- Cabeçalho com WELLNESS e o W já usado no ícone; títulos dos treinos em maiúsculas.
-- **Ver treinos** abre as oito semanas. Cards mostram pendente, em andamento ou concluído em verde, sem depender de datas.
-- Botões lado a lado para **YouTube** (vídeo original) e **TikTok** (busca do exercício).
-- **Ajustar tempo**, botões adaptados a letras maiores e um único descanso na última série. O último exercício tem **Finalizar treino**.
-- **Ranking** considera as sessões diferentes já concluídas e as próximas. Repetições da mesma sessão não dão pontos extras. O histórico completo continua em **Ranking → Ver histórico**.
+TikTok abre os vídeos escolhidos, em todos os treinos e na aba Exercícios. São 19 cadastros; as duas elevações sentadas continuam separadas, usando intencionalmente o mesmo vídeo.
 
-Cargas, reps, equipamentos, tempos personalizados e histórico são preservados na migração. As novas preferências também entram nos backups. A primeira abertura pode comemorar uma conquista obtida com conclusões antigas; a comemoração não se repete ao reabrir normalmente.
+Ao tocar, o Wellness tenta abrir no TikTok. Para usar **Abrir no navegador** ou **Copiar link**, toque na opção: nada disso acontece automaticamente. Os links originais foram preservados. A nuvem não conseguiu resolver os links curtos porque o proxy bloqueou as conexões; a disponibilidade dos vídeos e a abertura no TikTok real não foram verificadas. Detalhes em `docs/TIKTOK-VIDEOS.md`.
 
-Para baixar o projeto inteiro, use **Code → Download ZIP** no GitHub, extraia e abra `instalar`; o APK está nessa pasta. Requer Android 8.0 ou superior. Os resultados realmente executados e as limitações de testes estão em `docs/VALIDACAO.md`. O som/vibração e a entrega dos avisos continuam sujeitos às permissões e configurações do Android.
+YouTube, ranking, treinos, cargas, reps, equipamentos, histórico, tempos e preferências continuam preservados. O armazenamento não mudou. Faça backup antes de atualizar e instale por cima.
+
+Para baixar o projeto inteiro, use **Code → Download ZIP** no GitHub e abra a pasta `instalar`. Requer Android 8.0 ou superior. Os resultados realmente executados ficam em `docs/VALIDACAO.md`.

@@ -2,13 +2,25 @@
 
 Aplicativo em português para registrar os treinos da **ACADEMIAWELLNESS.xlsx**, sem conta e sem internet. Feito em Kotlin e Jetpack Compose. Requer Android 8.0 ou mais recente.
 
-## Atualização 1.3 — treinos organizados e ranking pessoal
+## Atualização 1.4 — vídeos TikTok escolhidos
+
+Os botões do TikTok agora usam os links dos **19 vídeos escolhidos pelo usuário**, em todas as 130 ocorrências dos exercícios nas 24 sessões e na aba Exercícios. Não fazem buscas por nome. As duas elevações laterais sentadas continuam cadastradas separadamente, usando intencionalmente o mesmo link TikTok. Os vídeos do YouTube e todas as melhorias da versão 1.3 foram preservados.
+
+Ao tocar no TikTok, o Wellness envia o link diretamente aos pacotes do aplicativo TikTok. Se não houver um aplicativo compatível, mostra **Abrir no navegador**, **Copiar link** e **Fechar**. Essas ações exigem um toque separado: não há abertura automática do navegador nem cópia automática. As mesmas opções ficam disponíveis ao retornar ao Wellness se o TikTok aceitou o link, mas não mostrou o vídeo esperado. Aceitar o direcionamento não é tratado como comprovação de reprodução do vídeo.
+
+O mapeamento está em `app/src/main/assets/tiktok-videos.json`, separado da planilha e dos registros pessoais. Cada entrada preserva o endereço original e permite guardar o endereço completo em `resolvedUrl`. Nesta entrega, foram tentados **todos os 18 links únicos**; o proxy da nuvem bloqueou as conexões com **HTTP 403 no CONNECT**, antes de qualquer redirecionamento. Por isso nenhum endereço completo foi obtido, todos os originais foram preservados e nenhum endereço foi inventado. Isso não significa que os vídeos estejam fora do ar. [Relatório dos links](docs/TIKTOK-VIDEOS.md).
+
+Versão **1.4**, `versionCode=5`, mesmo `applicationId=br.com.wellness` e mesma assinatura do APK 1.3. O formato dos registros continua **3**, sem migração nem substituição de preferências. Cargas, reps, equipamentos, tempos, progresso, ranking, histórico e backups são preservados. Exporte um backup em Ajustes e instale por cima escolhendo **Atualizar**, sem desinstalar ou limpar os dados.
+
+Os testes de direcionamento e de interface simulada são descritos em [docs/VALIDACAO.md](docs/VALIDACAO.md). **Não houve abertura dos vídeos em um TikTok real nem validação de reprodução/disponibilidade dos links**, pois não há aparelho conectado/TikTok instalado no ambiente e a rede bloqueia a resolução dos links.
+
+## Recursos preservados da versão 1.3
 
 O cabeçalho mostra **WELLNESS** e, abaixo, o pequeno símbolo **W** que já existia no ícone do aplicativo (`ic_wellness.xml`). A frase antiga foi retirada. **Bem-vinda, Nanda** continua na tela inicial. Os títulos de treinos aparecem em MAIÚSCULAS, com acentos, sem alterar nomes/identificadores guardados na planilha ou no histórico.
 
 A tela inicial mantém progresso e próximo treino. **Ver treinos** abre as 24 sessões agrupadas nas oito semanas, na ordem original. Um card verde com **✓ Concluído** identifica uma sessão concluída. As demais mostram **○ Pendente** ou **▶ Em andamento**. Abrir um treino registra seu início; nas versões antigas, marcações de séries ou kg específicos também permitem reconhecer uma sessão em andamento. A carga e as reps compartilhadas, sozinhas, não indicam em qual sessão se treinou. Os dias da semana são rótulos do plano: não concluem, bloqueiam ou atrasam sessões automaticamente.
 
-YouTube e TikTok têm botões separados, com ícones e nomes, dentro do treino e na aba Exercícios. **YouTube** abre exatamente o vídeo associado ao exercício nos dados oficiais; **TikTok** pesquisa “como fazer [nome]”. Ambos tentam seu aplicativo e usam o navegador como alternativa. Quando faltar um link de vídeo válido, YouTube fica indisponível com **Sem vídeo cadastrado**. Nenhum link novo foi inventado. A linha de equipamento saiu dos cards; a configuração continua em **Aparelho e carga**, mantendo as cargas separadas por perfil.
+YouTube e TikTok têm botões separados, com ícones e nomes, dentro do treino e na aba Exercícios. **YouTube** abre exatamente o vídeo associado ao exercício nos dados oficiais; **TikTok** abre o vídeo escolhido para o exercício, com alternativas manuais para navegador/cópia. YouTube mantém sua alternativa automática de navegador. Quando faltar um link de vídeo válido, YouTube fica indisponível com **Sem vídeo cadastrado**. Nenhum link novo foi inventado. A linha de equipamento saiu dos cards; a configuração continua em **Aparelho e carga**, mantendo as cargas separadas por perfil.
 
 Os controles de descanso agora dizem **Ajustar tempo**. Se não houver largura para os dois rótulos, inclusive com letras maiores, eles aparecem um abaixo do outro. Nas séries intermediárias há o descanso da série. Na última série, há somente o descanso para o próximo exercício; no último exercício aparece **Finalizar treino**, sem descanso para exercício inexistente. O descanso entre exercícios usa a preferência anterior dessa transição (ou 3:00 quando não definida). A preferência da última série, agora oculta, continua guardada nos backups para não apagar dados. O cronômetro fixo e seus controles permanecem.
 
@@ -27,7 +39,7 @@ A navegação é **Início · Exercícios · Ranking · Ajustes**. O histórico 
 
 Antes de três: **Em busca do primeiro rank**. Com cinco: **2 de 3 treinos — falta 1 para desbloquear Voltei por Milagre**. Com 24: **Todos os ranks conquistados**. Uma breve comemoração aparece no desbloqueio. O rank já anunciado é gravado antes da exibição, para não repetir ao abrir o aplicativo. Na primeira atualização/importação, conclusões antigas podem desbloquear uma única comemoração do maior rank ainda não anunciado. Se o processo for interrompido entre a gravação e a exibição, essa comemoração poderá não aparecer; os pontos e as conquistas permanecem.
 
-Versão **1.3**, `versionCode=4`, `applicationId=br.com.wellness`, mesma assinatura do APK 1.2. O arquivo local mantém o nome `wellness-v1.json`; a migração aditiva de formato 1/2 para **3** preserva cargas, reps, equipamentos, tempos, marcas e histórico, acrescentando apenas sessões iniciadas e controle da comemoração. Os backups incluem essas preferências e aceitam os formatos anteriores. Importar continua sendo restauração completa, com confirmação.
+A entrega 1.3 (`versionCode=4`) manteve `applicationId=br.com.wellness` e a mesma assinatura do APK 1.2. O arquivo local mantém o nome `wellness-v1.json`; a migração aditiva de formato 1/2 para **3** preserva cargas, reps, equipamentos, tempos, marcas e histórico, acrescentando apenas sessões iniciadas e controle da comemoração. Os backups incluem essas preferências e aceitam os formatos anteriores. Importar continua sendo restauração completa, com confirmação.
 
 Antes de atualizar, exporte um backup em **Ajustes**. Abra o APK e escolha **Atualizar**, instalando por cima. Não desinstale nem limpe os dados. Se o Android recusar a assinatura, pare e use a chave da instalação anterior.
 

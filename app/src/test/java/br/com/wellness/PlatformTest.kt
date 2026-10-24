@@ -27,29 +27,6 @@ import java.time.Duration
 @Config(sdk = [34])
 class PlatformTest {
     private val context: Application get() = RuntimeEnvironment.getApplication()
-    @Test fun tiktokFailureFallsBackToBrowserWithIdenticalSearchUrl() {
-        val plan = Codec.plan(context.assets.open("wellness.json").bufferedReader().use { it.readText() })
-        val exercise = ExerciseLibrary.catalog(plan).first { it.name == "Terra sumô" }
-        val browser = ResolveInfo().apply { activityInfo = ActivityInfo().apply { packageName="test.browser"; name="Browser" } }
-        shadowOf(context.packageManager).addResolveInfoForIntent(Intent(Intent.ACTION_VIEW, Uri.parse("https://example.org")).addCategory(Intent.CATEGORY_BROWSABLE), browser)
-        val attempts = mutableListOf<Intent>()
-        val wrapper = object : ContextWrapper(context) {
-            override fun startActivity(intent: Intent) {
-                attempts.add(intent)
-                if (intent.`package` != "test.browser") throw ActivityNotFoundException()
-            }
-        }
-        VideoSearch.open(wrapper,exercise)
-        assertEquals(listOf("com.zhiliaoapp.musically", "com.ss.android.ugc.trill", "test.browser"),attempts.map { it.`package` })
-        assertEquals(setOf(ExerciseLibrary.videoUrl(exercise)),attempts.map { it.dataString }.toSet())
-        assertEquals("como fazer Terra sumô",attempts.last().data!!.getQueryParameter("q"))
-        val accepted = mutableListOf<Intent>()
-        VideoSearch.open(object : ContextWrapper(context) {
-            override fun startActivity(intent: Intent) { accepted.add(intent) }
-        }, exercise)
-        assertEquals(1,accepted.size)
-        assertEquals("com.zhiliaoapp.musically",accepted.single().`package`)
-    }
     @Test fun youtubeUsesOriginalLinkAndFallsBackToTheSameLinkInBrowser() {
         val plan = Codec.plan(context.assets.open("wellness.json").bufferedReader().use { it.readText() })
         val exercise = plan.sessions.first().exercises.first()

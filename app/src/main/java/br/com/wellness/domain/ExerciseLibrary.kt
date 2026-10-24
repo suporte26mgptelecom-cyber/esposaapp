@@ -2,7 +2,6 @@ package br.com.wellness.domain
 
 import kotlinx.serialization.Serializable
 import java.net.URI
-import java.net.URLEncoder
 import java.text.Normalizer
 import java.util.Locale
 
@@ -14,9 +13,6 @@ object ExerciseLibrary {
     fun search(plan: Plan, query: String): List<Exercise> = catalog(plan).filter {
         normalize(it.name).contains(normalize(query).trim())
     }
-    fun videoQuery(ex: Exercise) = "como fazer ${ex.name}"
-    fun videoUrl(ex: Exercise): String = "https://www.tiktok.com/search?q=" +
-        URLEncoder.encode(videoQuery(ex), "UTF-8").replace("+", "%20")
     fun youtubeUrl(ex: Exercise): String? = runCatching {
         val value = ex.video.trim(); val uri = URI(value)
         val host = uri.host?.lowercase(Locale.ROOT)

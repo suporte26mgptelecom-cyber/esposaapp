@@ -9,10 +9,6 @@ import br.com.wellness.domain.Exercise
 import br.com.wellness.domain.ExerciseLibrary
 
 object VideoSearch {
-    private val packages = listOf("com.zhiliaoapp.musically", "com.ss.android.ugc.trill")
-    fun open(context: Context, exercise: Exercise) {
-        openLink(context, ExerciseLibrary.videoUrl(exercise), packages)
-    }
     fun openYouTube(context: Context, exercise: Exercise) {
         val url = ExerciseLibrary.youtubeUrl(exercise) ?: return
         openLink(context, url, listOf("com.google.android.youtube"))
@@ -29,7 +25,7 @@ object VideoSearch {
         // This avoids a default TikTok handler swallowing the browser fallback.
         val browsers = context.packageManager.queryIntentActivities(
             Intent(Intent.ACTION_VIEW, Uri.parse("https://example.org")).addCategory(Intent.CATEGORY_BROWSABLE), 0)
-            .map { it.activityInfo.packageName }.distinct().filter { it !in (packages + "com.google.android.youtube") }
+            .map { it.activityInfo.packageName }.distinct().filter { it !in listOf("com.google.android.youtube", "com.zhiliaoapp.musically", "com.ss.android.ugc.trill") }
         for (browser in browsers) {
             if (launch(Intent(Intent.ACTION_VIEW, uri).addCategory(Intent.CATEGORY_BROWSABLE).setPackage(browser))) return
         }

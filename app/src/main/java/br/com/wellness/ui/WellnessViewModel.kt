@@ -21,6 +21,7 @@ import java.io.File
 class WellnessViewModel(application: Application) : AndroidViewModel(application) {
     val plan = Codec.plan(application.assets.open("wellness.json").bufferedReader().use { it.readText() })
     val guides = Codec.json.decodeFromString<List<ExerciseGuide>>(application.assets.open("exercise-guides.json").bufferedReader().use { it.readText() }).associateBy { it.id }
+    val tikTokVideos = TikTokVideos(Codec.json.decodeFromString<List<TikTokVideo>>(application.assets.open("tiktok-videos.json").bufferedReader().use { it.readText() }))
     val engine = WorkoutEngine(plan)
     private val file = StateFile(File(application.filesDir, "wellness-v1.json"), plan)
     var state by mutableStateOf<AppState?>(null)

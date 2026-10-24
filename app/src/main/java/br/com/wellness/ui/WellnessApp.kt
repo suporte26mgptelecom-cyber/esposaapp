@@ -7,6 +7,7 @@ import android.Manifest
 import android.os.Build
 import br.com.wellness.RestAlerts
 import br.com.wellness.VideoSearch
+import br.com.wellness.TikTokVideosOpener
 import br.com.wellness.R
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.colorResource
@@ -252,9 +253,11 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     }
 }
 
-@Composable private fun VideoButtons(ex: Exercise) {
+@Composable private fun VideoButtons(ex: Exercise, vm: WellnessViewModel) {
     val context = LocalContext.current
     val youtube = ExerciseLibrary.youtubeUrl(ex)
+    val tikTokVideo = vm.tikTokVideos.forExercise(ex)
+    var tikTokAttempt by rememberSaveable(ex.id) { mutableStateOf<String?>(null) }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         OutlinedButton(colors = wellnessOutlinedButtonColors(), enabled = youtube != null,
             onClick = { VideoSearch.openYouTube(context, ex) }, contentPadding = PaddingValues(12.dp),
@@ -265,14 +268,35 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                 if (youtube == null) Text("Sem vídeo cadastrado", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
             }
         }
-        OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { VideoSearch.open(context, ex) }, contentPadding = PaddingValues(12.dp),
-            modifier = Modifier.weight(1f).heightIn(min = 80.dp).semantics { contentDescription = "Buscar como fazer ${ex.name} no TikTok" }) {
+        OutlinedButton(colors = wellnessOutlinedButtonColors(), enabled = tikTokVideo != null, onClick = { tikTokVideo?.let { tikTokAttempt = TikTokVideosOpener.openInTikTok(context, it).name } }, contentPadding = PaddingValues(12.dp),
+            modifier = Modifier.weight(1f).heightIn(min = 80.dp).semantics { contentDescription = if (tikTokVideo == null) "TikTok: sem vídeo cadastrado para ${ex.name}" else "Abrir vídeo de ${ex.name} no TikTok" }) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(painterResource(R.drawable.ic_tiktok), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(32.dp))
                 Text("TikTok", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
+    if (tikTokAttempt != null && tikTokVideo != null) AlertDialog(onDismissRequest = { tikTokAttempt = null },
+        title = { Text("Vídeo no TikTok") },
+        text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(ex.name, fontWeight = FontWeight.SemiBold)
+            Text(if (tikTokAttempt == TikTokVideosOpener.Attempt.SENT_UNCONFIRMED.name)
+                "Se o vídeo escolhido não apareceu no TikTok, você pode abrir o link no navegador ou copiá-lo."
+                else "Não foi possível abrir o vídeo no TikTok. Escolha como deseja abrir ou guardar o link.")
+            Text(tikTokVideo.originalUrl, style = MaterialTheme.typography.bodySmall)
+        } },
+        confirmButton = { Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(colors = wellnessButtonColors(), onClick = {
+                if (TikTokVideosOpener.openInBrowser(context, tikTokVideo)) tikTokAttempt = null
+                else android.widget.Toast.makeText(context, "Nenhum navegador disponível. Use ‘Copiar link’.", android.widget.Toast.LENGTH_LONG).show()
+            }, modifier = Modifier.fillMaxWidth()) { Text("Abrir no navegador") }
+            OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = {
+                val copied = TikTokVideosOpener.copyLink(context, tikTokVideo)
+                android.widget.Toast.makeText(context, if (copied) "Link copiado." else "Não foi possível copiar o link.", android.widget.Toast.LENGTH_LONG).show()
+                if (copied) tikTokAttempt = null
+            }, modifier = Modifier.fillMaxWidth()) { Text("Copiar link") }
+            TextButton(colors = wellnessTextButtonColors(), onClick = { tikTokAttempt = null }, modifier = Modifier.align(Alignment.End)) { Text("Fechar") }
+        } })
 }
 
 @Composable private fun ExecutionTip(ex: Exercise, vm: WellnessViewModel, catalog: Boolean = false) {
@@ -300,7 +324,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                 Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(ex.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     ExecutionTip(ex, vm, catalog = true)
-                    VideoButtons(ex)
+                    VideoButtons(ex, vm)
                 }
             } }
         }
@@ -315,7 +339,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(ex.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { configuring = true }) { Text("Aparelho e carga") }
-            VideoButtons(ex)
+            VideoButtons(ex, vm)
             NumericField(v.load, "Carga de trabalho (kg)", Modifier.fillMaxWidth(), "WS-${session.id}-${v.profile.key}") { n -> vm.edit { vm.engine.load(it, ex, n) } }
             ExecutionTip(ex, vm)
             TextButton(colors = wellnessTextButtonColors(), onClick = { calculation = !calculation }) { Text("Sobre o cálculo ${if (calculation) "▴" else "▾"}") }
@@ -557,7 +581,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
         item { Text("A contagem usa um horário de término e continua correta com a tela bloqueada. O Android controla som e vibração pelo canal ‘Descanso concluído’, pelo volume e pelo modo Não perturbe. Sem permissão de notificação, o aviso aparece ao voltar ao treino. Sem alarmes precisos, o Android pode atrasar o aviso durante a economia de bateria.") }
         item { OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { RestAlerts.notificationSettings(context) }) { Text("Configurar notificações, som e vibração") } }
         if (Build.VERSION.SDK_INT >= 31) item { OutlinedButton(colors = wellnessOutlinedButtonColors(), onClick = { RestAlerts.exactSettings(context) }) { Text("Permitir alarmes precisos") } }
-        item { Text("YouTube abre o vídeo do plano; TikTok pesquisa o exercício. Os vídeos precisam de internet. O restante funciona offline. As dicas complementam a planilha; peça orientação presencial para ajustar o aparelho ao seu corpo.") }
+        item { Text("YouTube abre o vídeo do plano; TikTok abre o vídeo escolhido para o exercício. Os vídeos precisam de internet. O restante funciona offline. As dicas complementam a planilha; peça orientação presencial para ajustar o aparelho ao seu corpo.") }
         items(vm.plan.notes) { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyMedium) }
         item { Text("Fonte SHA-256: ${vm.plan.sourceSha256}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall) }
     }

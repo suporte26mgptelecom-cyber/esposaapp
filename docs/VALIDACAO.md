@@ -2,6 +2,46 @@
 
 Planilha oficial: `ACADEMIAWELLNESS.xlsx`, SHA-256 `59cd316986fdf8c8619ff1003961b192a65166a8bb3b9e20baed016e6725cb1a`.
 
+## Atualização 1.4 — vídeos TikTok escolhidos (24/10/2026)
+
+Resultado final: **40 testes aprovados, zero falhas/erros/ignorados**, `assembleDebug` e `assembleDebugAndroidTest` concluídos e lint **“No issues found”**. Comando executado:
+
+```sh
+source /workspace/toolchains/wellness-env.sh
+./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest lintDebug --console=plain
+```
+
+Distribuição: WorkoutTest 10, UpdateTest 7, RankingTest 9, PlatformTest 2, InterfaceTest 1, NavigationV13Test 1, TikTokVideosTest 8 e TikTokUiTest 2. Os testes de busca TikTok antigos foram substituídos pelos testes dos vídeos escolhidos, pois a solicitação mais recente substituiu a busca por links específicos. As 4.158 verificações das fórmulas continuam passando.
+
+### Links: mapeamento versus acesso ao TikTok
+
+- O teste confronta independentemente os **19 IDs/links exatos** fornecidos, incluindo maiúsculas dos códigos e barra final, verifica 18 URLs únicas e todos os **130 exercícios das 24 sessões**, além dos 19 itens do catálogo. As duas elevações sentadas permanecem registros separados com o mesmo vídeo TikTok e seus próprios links YouTube.
+- Foram tentadas requisições GET com redirecionamentos aos **18 links únicos**. Todas falharam no proxy da nuvem: **CONNECT HTTP 403**, antes de uma resposta do TikTok. **Zero endereços completos obtidos; zero vídeos verificados como disponíveis/reproduzíveis.** Os originais foram preservados exatamente e `resolvedUrl=null` em todas as entradas. Isso não identifica links inválidos nem vídeos fora do ar. Evidências por URL/data/hora estão em [TIKTOK-RESOLUCAO.json](TIKTOK-RESOLUCAO.json), e a tabela legível em [TIKTOK-VIDEOS.md](TIKTOK-VIDEOS.md).
+- O aplicativo está preparado para guardar um endereço completo verificado sem apagar o original. Um teste usa uma URL longa **sintética, apenas no código de testes**, para conferir prioridade do endereço completo e nova tentativa com o original. Essa URL de exemplo não integra os vídeos do APK e não é apresentada como resolução de qualquer link escolhido.
+
+### Abertura: o que foi simulado
+
+- A tentativa inicial envia **somente a URL do vídeo** por ACTION_VIEW com o pacote TikTok explicitamente definido. Não envia nome do exercício, Google, busca TikTok, link de página inicial ou intent implícito. Todos os 19 destinos são conferidos nos testes de transporte. O resultado é chamado `SENT_UNCONFIRMED`, sem afirmar que o vídeo foi reproduzido.
+- Quando o TikTok é simulado como ausente/recusando o endereço, a tentativa termina sem abrir navegador, sem copiar e sem iniciar outro aplicativo. A presença de um navegador não muda esse comportamento.
+- **Abrir no navegador** só inicia um navegador depois do toque específico, passando o mesmo vídeo (completo se disponível, senão original). Não faz pesquisa. Sem navegador disponível, retorna falha e mantém a opção de cópia.
+- **Copiar link** só escreve no clipboard depois do toque, copia exatamente o endereço original e não abre aplicativo algum. Tentativas normais de TikTok e cancelamento preservam o clipboard anterior.
+- Dois testes de interface executam as telas Compose com Robolectric/Android 14: botão na aba Exercícios filtrada por `sumo`, botão no treino correspondente, URL correta, opções de navegador/cópia, cópia apenas após toque, navegador apenas após toque, fechamento e comparação byte a byte do arquivo de registros antes/depois. A aceitação dos intents nesses testes é simulada; **não existe um TikTok real como receptor**.
+- Os testes anteriores também passam: ranking sem duplicação, conclusões antigas, comemoração sem repetição, migração/importação dos formatos anteriores, perfis de equipamento, vazio versus zero, persistência, cronômetro, histórico imutável, navegação, fonte em 160%, finalização e YouTube.
+
+### Atualização e dados
+
+O APK é **1.4 / versionCode 5**, antes 1.3 / 4, com `applicationId=br.com.wellness`. `apksigner verify --print-certs` compara os dois APKs e confirma o mesmo certificado SHA-256 `f45a0d175aed2396cba54737eee94ee8b96fda1190f9a8c5d95619687a7566d5`. O formato dos registros permanece **3** e o caminho `wellness-v1.json` continua igual. Não há nova migração ou restauração de valores iniciais.
+
+`Models.kt`, `WorkoutEngine.kt`, `Storage.kt`, a planilha XLSX e `assets/wellness.json` foram comparados com a versão 1.3 e são idênticos. As URLs TikTok ficam somente no novo asset `tiktok-videos.json`, sem reescrever histórico, cargas, reps, equipamentos, tempos, ranking ou preferências. O JSON oficial embarcado no APK foi comparado com o anterior: continua idêntico, incluindo os links YouTube.
+
+### Limitações
+
+Não há dispositivo conectado (`adb devices` sem aparelhos) nem `/dev/kvm`; não foi iniciado o emulador de sistema completo que falhou nas entregas anteriores. Não houve instalação sobre um celular físico, abertura no TikTok real, confirmação da tela exibida por esse aplicativo ou reprodução dos vídeos. O APK de instrumentação foi compilado, mas não executado em aparelho. A rede bloqueou todos os links curtos. **Validação dos parâmetros enviados e das telas simuladas não equivale a validação de um link ao vivo nem de sua abertura no TikTok.**
+
+A assinatura, a versão e a preservação dos dados foram conferidas; os dados pessoais do celular do usuário não foram acessados. Para atualizar, exporte um backup e instale o APK por cima escolhendo Atualizar, sem desinstalar nem limpar os dados. Checksum e metadados ficam em `instalar/SHA256SUMS.txt` e `instalar/versao.json`.
+
+## Registros históricos das entregas anteriores
+
 ## Atualização 1.3 — resultados de 24/10/2026
 
 **Resultado final: 32 testes aprovados, zero falhas/erros/ignorados; APK 1.3 compilado; lint “No issues found”.**

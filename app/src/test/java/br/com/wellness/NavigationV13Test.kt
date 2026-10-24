@@ -81,7 +81,7 @@ class NavigationV13Test {
         compose.onNodeWithTag("session-S2 A3").assert(hasText("▶ Em andamento")).performClick()
         val plan=vm.plan;val session=plan.sessions[5];val first=session.exercises.first();val last=session.exercises.last()
         compose.onNodeWithContentDescription("Abrir vídeo de ${first.name} no YouTube").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithContentDescription("Buscar como fazer ${first.name} no TikTok").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Abrir vídeo de ${first.name} no TikTok").assertIsDisplayed()
         compose.onNodeWithTag("rest-controls-${first.id}-between").performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("rest-controls-${first.id}-${first.sets.last().key}").assertDoesNotExist()
         compose.onNodeWithText("Descansar para o próximo exercício · 3:30").performScrollTo().assertIsDisplayed()
