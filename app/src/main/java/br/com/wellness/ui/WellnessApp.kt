@@ -185,7 +185,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     val next = vm.engine.next(state)
     Column(Modifier.fillMaxSize()) {
     LazyColumn(modifier = Modifier.weight(1f).testTag("home-list"), contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { Text("Bem-vinda, Nanda", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
+        item { Text("Bem-vinda, Nanda", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
         item { Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
             Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("SEU PROGRESSO", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelLarge)
@@ -258,6 +258,9 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
     val youtube = ExerciseLibrary.youtubeUrl(ex)
     val tikTokVideo = vm.tikTokVideos.forExercise(ex)
     var tikTokAttempt by rememberSaveable(ex.id) { mutableStateOf<String?>(null) }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("COMO FAZER", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         OutlinedButton(colors = wellnessOutlinedButtonColors(), enabled = youtube != null,
             onClick = { VideoSearch.openYouTube(context, ex) }, contentPadding = PaddingValues(12.dp),
@@ -275,6 +278,7 @@ private fun date(time: Long) = SimpleDateFormat("dd/MM/yyyy 'às' HH:mm", Locale
                 Text("TikTok", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
             }
         }
+    }
     }
     if (tikTokAttempt != null && tikTokVideo != null) AlertDialog(onDismissRequest = { tikTokAttempt = null },
         title = { Text("Vídeo no TikTok") },

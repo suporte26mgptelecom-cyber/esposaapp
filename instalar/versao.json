@@ -1,8 +1,8 @@
 {
-  "versionName": "1.4",
-  "versionCode": 5,
+  "versionName": "1.5",
+  "versionCode": 6,
   "applicationId": "br.com.wellness",
-  "apkSha256": "ce1b08264103e0386ebfb0f0bdadc8cca0ca571d93f9082c7427a7eea4720b7f",
+  "apkSha256": "aa80b3bb8af3d88900f0842bc27ae0be0ab46f9bbd442e08a727d6283370af44",
   "certificateSha256": "f45a0d175aed2396cba54737eee94ee8b96fda1190f9a8c5d95619687a7566d5",
   "sourceSha256": "59cd316986fdf8c8619ff1003961b192a65166a8bb3b9e20baed016e6725cb1a",
   "unitAndRobolectricTests": 40,
@@ -16,5 +16,5 @@
   "resolvedTikTokLinks": 0,
   "linkResolution": "All 18 unique HTTPS requests blocked by environment proxy: CONNECT HTTP 403. Original links preserved.",
   "tiktokRealAppTested": false,
-  "ui": "Robolectric Android 14: chosen video links, explicit TikTok intents, manual browser/copy, preserved records; no real TikTok or playback test."
+  "ui": "Robolectric Android 14; centered welcome and COMO FAZER above YouTube/TikTok reviewed in simulated captures. No physical device test."
 }

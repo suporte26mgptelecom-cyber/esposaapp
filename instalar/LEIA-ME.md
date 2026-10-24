@@ -1,4 +1,4 @@
-# Atualizar o Wellness para 1.4
+# Atualizar o Wellness para 1.5
 
 Você não precisa programar nem instalar Android Studio.
 
@@ -6,14 +6,13 @@ Você não precisa programar nem instalar Android Studio.
 2. Baixe `Wellness-teste.apk` desta pasta. No GitHub, toque em **Download raw** (seta de download).
 3. No Android, abra o arquivo em **Downloads** e escolha **Atualizar**. Autorize a instalação por esse navegador/gerenciador quando solicitado.
 
-Instale por cima: **não desinstale nem limpe os dados**. A identificação continua `br.com.wellness`; a mesma chave do APK 1.3 é usada. O número interno aumentou de 4 para **5**, versão **1.4**. Se aparecer erro de assinatura, pare e informe o erro mantendo o aplicativo instalado.
+Instale por cima: **não desinstale nem limpe os dados**. A identificação continua `br.com.wellness`; a mesma chave do APK 1.4 é usada. O número interno aumentou de 5 para **6**, versão **1.5**. Se aparecer erro de assinatura, pare e informe o erro mantendo o aplicativo instalado.
 
-## O que mudou na versão 1.4
+## O que mudou na versão 1.5
 
-TikTok abre os vídeos escolhidos, em todos os treinos e na aba Exercícios. São 19 cadastros; as duas elevações sentadas continuam separadas, usando intencionalmente o mesmo vídeo.
+- **Bem-vinda, Nanda** centralizado na tela inicial.
+- **COMO FAZER** acima dos botões YouTube e TikTok, nos treinos e na aba Exercícios.
 
-Ao tocar, o Wellness tenta abrir no TikTok. Para usar **Abrir no navegador** ou **Copiar link**, toque na opção: nada disso acontece automaticamente. Os links originais foram preservados. A nuvem não conseguiu resolver os links curtos porque o proxy bloqueou as conexões; a disponibilidade dos vídeos e a abertura no TikTok real não foram verificadas. Detalhes em `docs/TIKTOK-VIDEOS.md`.
+Links de vídeo, cargas, repetições, equipamentos, descansos, ranking e histórico continuam preservados. O armazenamento não mudou. Faça backup e instale por cima escolhendo **Atualizar**.
 
-YouTube, ranking, treinos, cargas, reps, equipamentos, histórico, tempos e preferências continuam preservados. O armazenamento não mudou. Faça backup antes de atualizar e instale por cima.
-
-Para baixar o projeto inteiro, use **Code → Download ZIP** no GitHub e abra a pasta `instalar`. Requer Android 8.0 ou superior. Os resultados realmente executados ficam em `docs/VALIDACAO.md`.
+Para baixar o projeto inteiro, use **Code → Download ZIP** no GitHub e abra `instalar`. Requer Android 8.0 ou superior. Os testes executados e as limitações estão em `docs/VALIDACAO.md`.

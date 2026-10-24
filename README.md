@@ -2,6 +2,14 @@
 
 Aplicativo em português para registrar os treinos da **ACADEMIAWELLNESS.xlsx**, sem conta e sem internet. Feito em Kotlin e Jetpack Compose. Requer Android 8.0 ou mais recente.
 
+## Atualização 1.5 — boas-vindas e vídeos
+
+**Bem-vinda, Nanda** está centralizado horizontalmente na tela inicial. Nos treinos e na aba Exercícios, **COMO FAZER** aparece centralizado acima dos botões de YouTube e TikTok, que continuam lado a lado.
+
+Versão **1.5**, `versionCode=6`, mesmo `applicationId=br.com.wellness` e mesma assinatura do APK 1.4. Esta atualização muda somente a apresentação desses elementos. Dados salvos, links escolhidos, cálculos, ranking e configurações permanecem preservados. Faça backup em Ajustes e instale o novo APK por cima, escolhendo **Atualizar**, sem desinstalar ou limpar os dados.
+
+As informações abaixo sobre vídeos e demais recursos continuam válidas. A limitação de acesso aos links TikTok, documentada na entrega 1.4, permanece sem nova verificação nesta mudança visual.
+
 ## Atualização 1.4 — vídeos TikTok escolhidos
 
 Os botões do TikTok agora usam os links dos **19 vídeos escolhidos pelo usuário**, em todas as 130 ocorrências dos exercícios nas 24 sessões e na aba Exercícios. Não fazem buscas por nome. As duas elevações laterais sentadas continuam cadastradas separadamente, usando intencionalmente o mesmo link TikTok. Os vídeos do YouTube e todas as melhorias da versão 1.3 foram preservados.

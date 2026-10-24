@@ -2,6 +2,16 @@
 
 Planilha oficial: `ACADEMIAWELLNESS.xlsx`, SHA-256 `59cd316986fdf8c8619ff1003961b192a65166a8bb3b9e20baed016e6725cb1a`.
 
+## Atualização 1.5 — boas-vindas e identificação dos vídeos (24/10/2026)
+
+- “Bem-vinda, Nanda” centralizado horizontalmente na tela inicial, mantendo sua posição acima dos cards.
+- “COMO FAZER” centralizado acima dos botões YouTube e TikTok, no componente compartilhado pelos treinos e pela aba Exercícios.
+- Versão **1.5 / versionCode 6**, antes 1.4 / 5, mesmo `applicationId=br.com.wellness` e mesmo certificado SHA-256 `f45a0d175aed2396cba54737eee94ee8b96fda1190f9a8c5d95619687a7566d5`, conferido entre os APKs com `apksigner verify --print-certs`. Identificação/versão verificadas com `aapt dump badging`.
+- Comando executado: `./gradlew testDebugUnitTest assembleDebug assembleDebugAndroidTest lintDebug --console=plain`, após ativar `/workspace/toolchains/wellness-env.sh`. Resultado **BUILD SUCCESSFUL**, **40 testes aprovados**, zero falhas/erros/ignorados, lint **No issues found**. Nenhum teste novo foi acrescentado para estas duas mudanças de apresentação; a suíte existente foi executada.
+- Capturas produzidas pelo teste de interface com Robolectric foram inspecionadas: saudação centralizada na inicial e título COMO FAZER sobre a fileira de botões na aba Exercícios. O treino usa o mesmo componente. Essas capturas são de Android simulado e podem omitir camadas estáticas em telas posteriores; não equivalem à conferência completa em celular físico.
+- `Models.kt`, `WorkoutEngine.kt`, `Storage.kt`, plano oficial e mapeamento TikTok foram comparados com a versão 1.4 e permanecem idênticos. Os dois JSONs embarcados também foram comparados entre os APKs. Não há mudança de armazenamento, cálculos, links, ranking ou preferências.
+- Não houve instalação em aparelho físico nem nova verificação de links/reprodução no TikTok. As limitações de rede e de abertura externa documentadas na versão 1.4 permanecem. Para atualizar, exporte backup e instale por cima, sem desinstalar nem limpar dados.
+
 ## Atualização 1.4 — vídeos TikTok escolhidos (24/10/2026)
 
 Resultado final: **40 testes aprovados, zero falhas/erros/ignorados**, `assembleDebug` e `assembleDebugAndroidTest` concluídos e lint **“No issues found”**. Comando executado:
